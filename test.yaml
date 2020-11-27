@@ -1,11 +1,8 @@
 ::let:
-  foo: bar
   user:
     ::object:
       - ::titlecase:
-          ::ref:
-            - $user
-            - username
+          ::ref: $user.username
       - Type: AWS::IAM::User
         Properties:
           UserName:
@@ -15,18 +12,30 @@
           LoginProfile:
             Password:
               ::ref: $user.password
+              ::else: default
             PasswordResetRequired: Yes
-
   users:
-    users:
-      ::merge:
-        ::each $ as $user:
-          ::call user: []
+    ::each $ as $user:
+      ::call user: []
 
-::call users:
-  - username: jim
-    password: one
-  - username: jack
-    password: two
-  - username: johnny
-    password: something
+Something:
+  ::let:
+    items:
+      - one
+      - null
+      - three
+  ::each items as item:
+    ::concat:
+      - "<"
+      - ::ref: item
+        ::else: unknown
+      - ">"
+
+Resources:
+  ::merge:
+    - ::call users:
+        - username: jim
+          password: one
+        - username: jack
+          password: two
+        - username: johnny

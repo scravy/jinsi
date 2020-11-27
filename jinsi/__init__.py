@@ -42,15 +42,17 @@ class Node:
             return Sequence.parse(obj, parent)
         if isinstance(obj, (type(None), bool, int, float, str, date, datetime)):
             return Constant.parse(obj, parent)
+        if '::else' in obj:
+            return Else.parse(obj, parent)
+        if '::let' in obj:
+            return Let.parse(obj, parent)
+        if '::env' in obj:
+            return Env.parse(obj, parent)
         if '::ref' in obj:
             ref = obj['::ref']
             if isinstance(ref, str) and ref[:1] == '$' or isinstance(ref, list) and ref[0][:1] == '$':
                 return GetEnv.parse(obj, parent)
             return GetLet.parse(obj, parent)
-        if '::let' in obj:
-            return Let.parse(obj, parent)
-        if '::env' in obj:
-            return Env.parse(obj, parent)
         for key in obj:
             if key[:6] == "::call":
                 return Application.parse(obj, parent)
@@ -193,6 +195,33 @@ class Env(Node):
         return self.body.eval(env.with_env(my_env))
 
 
+class Else(Node):
+    def __init__(self, parent: Node):
+        super().__init__(parent)
+        self.body: Node = Empty()
+        self.otherwise: Node = Empty()
+
+    @staticmethod
+    def parse(obj: Any, parent: Node) -> Node:
+        node = Else(parent)
+        remainder = {}
+        for key, value in obj.items():
+            if key == '::else':
+                node.otherwise = Node.parse(value, node)
+                continue
+            remainder[key] = value
+        node.body = Node.parse(remainder, node)
+        return node
+
+    def eval(self, env: Environment) -> Value:
+        result = self.body.eval(env)
+        if isinstance(result, (list, dict, str)) and len(result) == 0 \
+                or isinstance(result, bool) and not result \
+                or result is None:
+            result = self.otherwise.eval(env)
+        return result
+
+
 class Object(Node):
     def __init__(self, parent: Node):
         super().__init__(parent)
@@ -240,8 +269,6 @@ class FunctionApplication(Node):
     @staticmethod
     def parse(obj, parent: Node) -> Node:
         for key in obj:
-            if key in ("::let", "::env"):
-                continue
             if key[:2] == "::":
                 name = key[2:]
                 if name[-1:] == "_":
