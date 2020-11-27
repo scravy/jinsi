@@ -1,6 +1,46 @@
 from typing import List
 
 
+class Functions:
+    @staticmethod
+    def titlecase(value):
+        return Name(value).titlecase()
+
+    @staticmethod
+    def kebabcase(value):
+        return Name(value).kebabcase()
+
+    @staticmethod
+    def snakecase(value):
+        return Name(value).snakecase()
+
+    @staticmethod
+    def uppercase(value):
+        return str(value).upper()
+
+    @staticmethod
+    def lowercase(value):
+        return str(value).lower()
+
+    @staticmethod
+    def object(key, value):
+        return {key: value}
+
+    @staticmethod
+    def concat(*strings):
+        return "".join([str(s) for s in strings])
+
+    @staticmethod
+    def merge(*items):
+        obj = {}
+        for item in items:
+            if isinstance(item, list):
+                item = Functions.merge(*item)
+            for key, value in item.items():
+                obj[key] = value
+        return obj
+
+
 class Name:
     def __init__(self, name):
         parts = []
@@ -43,46 +83,3 @@ class Name:
         if current_part:
             parts.append("".join(current_part))
         return parts
-
-
-class Functions:
-    @staticmethod
-    def titlecase(value):
-        return Name(value).titlecase()
-
-    @staticmethod
-    def kebabcase(value):
-        return Name(value).kebabcase()
-
-    @staticmethod
-    def snakecase(value):
-        return Name(value).snakecase()
-
-    @staticmethod
-    def uppercase(value):
-        return str(value).upper()
-
-    @staticmethod
-    def lowercase(value):
-        return str(value).lower()
-
-    @staticmethod
-    def object(key, value):
-        return {key: value}
-
-    @staticmethod
-    def concat(*strings):
-        return "".join([str(s) for s in strings])
-
-    @staticmethod
-    def merge(*items):
-        obj = {}
-        for item in items:
-            if isinstance(item, list):
-                for list_item in item:
-                    for item_key, item_value in list_item.items():
-                        obj[item_key] = item_value
-            else:
-                for key, value in item.items():
-                    obj[key] = value
-        return obj

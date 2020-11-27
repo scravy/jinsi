@@ -8,12 +8,12 @@ import yaml
 
 from .exceptions import JinsiException, NoSuchEnvironmentVariable, NoSuchFunction, NoParse
 from .functions import Functions
-from .util import head, Singleton
+from .util import head, Singleton, select
 
 Value = Any
 
 
-class Environment(object):
+class Environment:
     def __init__(self, env: Dict[str, Value], parent: Union[type(None), Environment] = None):
         self.parent = parent
         self.env: Dict[str, Value] = env
@@ -23,13 +23,13 @@ class Environment(object):
             return self.env[key]
         if self.parent:
             return self.parent.get_env(key)
-        raise NoSuchEnvironmentVariable()
+        raise NoSuchEnvironmentVariable(key)
 
     def with_env(self, env: Dict[str, Value]) -> Environment:
         return Environment(env, self)
 
 
-class Node(object):
+class Node:
     is_empty = False
 
     def __init__(self, parent: Node):
@@ -44,7 +44,7 @@ class Node(object):
             return Constant.parse(obj, parent)
         if '::ref' in obj:
             ref = obj['::ref']
-            if ref[:1] == '$':
+            if isinstance(ref, str) and ref[:1] == '$' or isinstance(ref, list) and ref[0][:1] == '$':
                 return GetEnv.parse(obj, parent)
             return GetLet.parse(obj, parent)
         if '::let' in obj:
@@ -97,29 +97,46 @@ class Constant(Node):
 
 
 class GetLet(Node):
-    def __init__(self, parent: Node, what: str):
+    def __init__(self, parent: Node, path: List[str]):
         super().__init__(parent)
-        self.what: str = what
+        self.path: List[str] = path
 
     @staticmethod
     def parse(obj, parent: Node) -> Node:
-        return GetLet(parent, obj['::ref'])
+        path = obj['::ref']
+        if isinstance(path, str):
+            path = path.split(".")
+        if not isinstance(path, list):
+            raise NoParse()
+        return GetLet(parent, path)
 
     def eval(self, env: Environment) -> Value:
-        return self.get_let(self.what, env)
+        result = self.get_let(self.path[0], env)
+        if len(self.path) > 1:
+            result = select(result, *self.path[1:])
+        return result
 
 
 class GetEnv(Node):
-    def __init__(self, parent: Node, what: str):
+    def __init__(self, parent: Node, path: List[str]):
         super().__init__(parent)
-        self.what: str = what
+        self.path: List[str] = path
 
     @staticmethod
     def parse(obj, parent: Node) -> Node:
-        return GetEnv(parent, obj['::ref'][1:])
+        path = obj['::ref']
+        if isinstance(path, str):
+            path = path.split(".")
+        if not isinstance(path, list):
+            raise NoParse()
+        path[0] = path[0][1:]  # remove leading dollar sign
+        return GetEnv(parent, path)
 
     def eval(self, env: Environment) -> Value:
-        return env.get_env(self.what)
+        result = env.get_env(self.path[0])
+        if len(self.path) > 1:
+            result = select(result, *self.path[1:])
+        return result
 
 
 class Let(Node):

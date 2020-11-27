@@ -7,7 +7,8 @@ class NoParse(JinsiException):
 
 
 class NoSuchEnvironmentVariable(JinsiException):
-    pass
+    def __init__(self, name: str):
+        self.name = name
 
 
 class NoSuchFunction(JinsiException):

@@ -1,0 +1,32 @@
+::let:
+  foo: bar
+  user:
+    ::object:
+      - ::titlecase:
+          ::ref:
+            - $user
+            - username
+      - Type: AWS::IAM::User
+        Properties:
+          UserName:
+            ::ref: $user.username
+          Groups:
+            - Administrators
+          LoginProfile:
+            Password:
+              ::ref: $user.password
+            PasswordResetRequired: Yes
+
+  users:
+    users:
+      ::merge:
+        ::each $ as $user:
+          ::call user: []
+
+::call users:
+  - username: jim
+    password: one
+  - username: jack
+    password: two
+  - username: johnny
+    password: something
