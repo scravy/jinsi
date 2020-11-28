@@ -6,9 +6,10 @@ from typing import Dict, List, Any, Union
 
 import yaml
 
-from .exceptions import JinsiException, NoSuchEnvironmentVariable, NoSuchFunction, NoParse
+from .exceptions import JinsiException, NoSuchEnvironmentVariableError, NoSuchFunctionError, NoParseError, \
+    NoSuchVariableError
 from .functions import Functions
-from .util import head, Singleton, select
+from .util import head, Singleton, select, substitute
 
 Value = Any
 
@@ -23,7 +24,7 @@ class Environment:
             return self.env[key]
         if self.parent:
             return self.parent.get_env(key)
-        raise NoSuchEnvironmentVariable(key)
+        raise NoSuchEnvironmentVariableError(key)
 
     def with_env(self, env: Dict[str, Value]) -> Environment:
         return Environment(env, self)
@@ -46,14 +47,16 @@ class Node:
             return Else.parse(obj, parent)
         if '::let' in obj:
             return Let.parse(obj, parent)
-        if '::env' in obj:
-            return Env.parse(obj, parent)
+        if '::include' in obj:
+            return Include.parse(obj, parent)
         if '::ref' in obj:
             ref = obj['::ref']
             if isinstance(ref, str) and ref[:1] == '$' or isinstance(ref, list) and ref[0][:1] == '$':
                 return GetEnv.parse(obj, parent)
             return GetLet.parse(obj, parent)
         for key in obj:
+            if key[:8] == "::format":
+                return Format.parse(obj, parent)
             if key[:6] == "::call":
                 return Application.parse(obj, parent)
             if key[:6] == "::each":
@@ -64,9 +67,6 @@ class Node:
 
     def get_let(self, name: str, env: Environment) -> Any:
         return self.parent.get_let(name, env)
-
-    def get_let_lazy(self, name: str) -> Node:
-        return self.parent.get_let_lazy(name)
 
     def eval(self, env: Environment) -> Value:
         pass
@@ -79,10 +79,7 @@ class Empty(Node, metaclass=Singleton):
         super().__init__(self)
 
     def get_let(self, name: str, env: Environment) -> Any:
-        raise KeyError(name)
-
-    def get_let_lazy(self, name: str) -> Node:
-        raise KeyError(name)
+        raise NoSuchVariableError(name)
 
 
 class Constant(Node):
@@ -109,7 +106,7 @@ class GetLet(Node):
         if isinstance(path, str):
             path = path.split(".")
         if not isinstance(path, list):
-            raise NoParse()
+            raise NoParseError()
         return GetLet(parent, path)
 
     def eval(self, env: Environment) -> Value:
@@ -130,7 +127,7 @@ class GetEnv(Node):
         if isinstance(path, str):
             path = path.split(".")
         if not isinstance(path, list):
-            raise NoParse()
+            raise NoParseError()
         path[0] = path[0][1:]  # remove leading dollar sign
         return GetEnv(parent, path)
 
@@ -145,6 +142,7 @@ class Let(Node):
     def __init__(self, parent: Node):
         super().__init__(parent)
         self.let: Dict[str, Node] = {}
+        self.env: Dict[str, Value] = {}
         self.body: Node = Empty()
 
     @staticmethod
@@ -153,46 +151,29 @@ class Let(Node):
         remainder = {}
         for key, value in obj.items():
             if key == '::let':
-                for let_key, let_value in value.items():
-                    node.let[let_key] = Node.parse(let_value, node)
+                for var_key, var_value in value.items():
+                    if var_key[:1] == "$":
+                        var_key = var_key[1:]
+                        node.env[var_key] = Node.parse(var_value, node)
+                    else:
+                        node.let[var_key] = Node.parse(var_value, node)
                 continue
             remainder[key] = value
         node.body = Node.parse(remainder, node)
         return node
 
     def eval(self, env: Environment) -> Value:
-        return self.body.eval(env)
+        if not self.env:
+            return self.body.eval(env)
+        my_env: Dict[str, Value] = {}
+        for key, node in self.env.items():
+            my_env[key] = node.eval(env)
+        return self.body.eval(env.with_env(my_env))
 
     def get_let(self, name: str, env: Environment):
         if name not in self.let:
             return super().get_let(name, env)
         return self.let[name].eval(env)
-
-
-class Env(Node):
-    def __init__(self, parent: Node):
-        super().__init__(parent)
-        self.env: Dict[str, Node] = {}
-        self.body: Node = Empty()
-
-    @staticmethod
-    def parse(obj: Any, parent: Node) -> Node:
-        node = Env(parent)
-        remainder = {}
-        for key, value in obj.items():
-            if key == '::env':
-                for env_key, env_value in value.items():
-                    node.env[env_key] = Node.parse(env_value, node)
-                continue
-            remainder[key] = value
-        node.body = Node.parse(remainder, node)
-        return node
-
-    def eval(self, env: Environment) -> Value:
-        my_env = {}
-        for key, value in self.env.items():
-            my_env[key] = value.eval(env)
-        return self.body.eval(env.with_env(my_env))
 
 
 class Else(Node):
@@ -220,6 +201,23 @@ class Else(Node):
                 or result is None:
             result = self.otherwise.eval(env)
         return result
+
+
+class Include(Node):
+    @staticmethod
+    def parse(obj: Any, parent: Node) -> Node:
+        includes = obj['::include']
+        if isinstance(includes, str):
+            includes = [includes]
+        nodes = []
+        for include in includes:
+            # nodes.append(load_file(include, parent))
+            # FIXME
+            pass
+        pass
+
+    def eval(self, env: Environment) -> Value:
+        pass
 
 
 class Object(Node):
@@ -275,9 +273,9 @@ class FunctionApplication(Node):
                     name = name[:-1]
                 try:
                     if not isinstance(getattr_static(Functions, name), staticmethod):
-                        raise NoSuchFunction(name)
+                        raise NoSuchFunctionError(name)
                 except AttributeError:
-                    raise NoSuchFunction(name)
+                    raise NoSuchFunctionError(name)
                 func = getattr(Functions, name)
                 app = FunctionApplication(parent, func)
                 args = obj[key]
@@ -307,20 +305,22 @@ class Application(Node):
 
     @staticmethod
     def parse(obj, parent: Node) -> Node:
-        for key in obj:
+        for key, value in obj.items():
             if key[:6] == "::call":
                 _, name = key.split(" ")
                 app = Application(parent, name)
-                if isinstance(obj[key], list):
-                    app.kwargs[""] = Sequence.parse(obj[key], app)
+                if isinstance(value, list):
+                    app.kwargs[""] = Sequence.parse(value, app)
                 else:
-                    for arg_key, arg_value in obj[key].items():
+                    for arg_key, arg_value in value.items():
+                        if arg_key[:1] == "$":
+                            arg_key = arg_key[1:]
                         app.kwargs[arg_key] = Node.parse(arg_value, app)
                 return app
         raise JinsiException()
 
     def eval(self, env: Environment) -> Value:
-        my_env: Dict[str, Any] = {}
+        my_env: Dict[str, Value] = {}
         for key, node in self.kwargs.items():
             my_env[key] = node.eval(env)
         return self.get_let(self.template, env.with_env(my_env))
@@ -336,13 +336,13 @@ class Each(Node):
 
     @staticmethod
     def parse(obj, parent: Node) -> Node:
-        for key in obj:
+        for key, value in obj.items():
             if key[:6] == "::each":
                 _, source, _, target = key.split(" ")
                 each = Each(parent, source, target)
-                each.body = Node.parse(obj[key], each)
+                each.body = Node.parse(value, each)
                 return each
-        raise NoParse()
+        raise NoParseError()
 
     def get_let(self, name: str, env: Environment) -> Value:
         if name == self.target:
@@ -369,8 +369,29 @@ class Each(Node):
         return results
 
 
-def parse(doc) -> Node:
-    return Node.parse(doc, Empty())
+class Format(Node):
+    def __init__(self, parent: Node, value: Value):
+        super().__init__(parent)
+        self.value: Value = value
+
+    @staticmethod
+    def parse(obj: Any, parent: Node) -> Node:
+        for key, value in obj.items():
+            if key == "::format":
+                return Format(parent, value)
+        raise NoParseError()
+
+    def eval(self, env: Environment) -> Value:
+        def subst(key: str) -> str:
+            if key[:1] == "$":
+                return env.get_env(key[1:])
+            return self.get_let(key, env)
+
+        return substitute(self.value, subst)
+
+
+def parse(doc, parent: Node = Empty()) -> Node:
+    return Node.parse(doc, parent)
 
 
 def evaluate(node: Node) -> Value:
@@ -395,14 +416,14 @@ def render_file(file: str) -> str:
     return yaml.safe_dump(evaluate(node))
 
 
-def load_yaml(yaml_str: str) -> Node:
+def load_yaml(yaml_str: str, parent: Node = Empty()) -> Node:
     import textwrap
     yaml_str = textwrap.dedent(yaml_str)
     doc = yaml.safe_load(yaml_str)
-    return parse(doc)
+    return parse(doc, parent)
 
 
-def load_file(file: str) -> Node:
+def load_file(file: str, parent: Node = Empty()) -> Node:
     with open(file) as f:
         doc = yaml.safe_load(f)
-    return parse(doc)
+    return parse(doc, parent)

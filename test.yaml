@@ -20,14 +20,14 @@
 
 Something:
   ::let:
-    items:
+    $items:
       - one
       - null
       - three
-  ::each items as item:
+  ::each $items as $item:
     ::concat:
       - "<"
-      - ::ref: item
+      - ::ref: $item
         ::else: unknown
       - ">"
 

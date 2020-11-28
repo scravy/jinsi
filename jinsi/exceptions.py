@@ -1,16 +1,21 @@
-class JinsiException(BaseException):
+class JinsiException(Exception):
     pass
 
 
-class NoParse(JinsiException):
+class NoParseError(JinsiException):
     pass
 
 
-class NoSuchEnvironmentVariable(JinsiException):
+class NoSuchVariableError(JinsiException):
     def __init__(self, name: str):
         self.name = name
 
 
-class NoSuchFunction(JinsiException):
+class NoSuchEnvironmentVariableError(JinsiException):
+    def __init__(self, name: str):
+        self.name = name
+
+
+class NoSuchFunctionError(JinsiException):
     def __init__(self, name: str):
         self.name = name
