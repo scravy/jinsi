@@ -19,3 +19,7 @@ class NoSuchEnvironmentVariableError(JinsiException):
 class NoSuchFunctionError(JinsiException):
     def __init__(self, name: str):
         self.name = name
+
+
+class NoMergePossible(JinsiException):
+    pass

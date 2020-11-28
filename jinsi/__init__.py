@@ -9,7 +9,7 @@ import yaml
 from .exceptions import JinsiException, NoSuchEnvironmentVariableError, NoSuchFunctionError, NoParseError, \
     NoSuchVariableError
 from .functions import Functions
-from .util import head, Singleton, select, substitute
+from .util import head, Singleton, select, substitute, merge
 
 Value = Any
 
@@ -43,12 +43,20 @@ class Node:
             return Sequence.parse(obj, parent)
         if isinstance(obj, (type(None), bool, int, float, str, date, datetime)):
             return Constant.parse(obj, parent)
+        if '::include' in obj:
+            includes = obj['::include']
+            if isinstance(includes, str):
+                includes = [includes]
+            del obj['::include']
+            docs = [obj]
+            for include in includes:
+                with open(include) as f:
+                    docs.append(yaml.safe_load(f))
+            obj = merge(*docs)
         if '::else' in obj:
             return Else.parse(obj, parent)
         if '::let' in obj:
             return Let.parse(obj, parent)
-        if '::include' in obj:
-            return Include.parse(obj, parent)
         if '::ref' in obj:
             ref = obj['::ref']
             if isinstance(ref, str) and ref[:1] == '$' or isinstance(ref, list) and ref[0][:1] == '$':
@@ -201,23 +209,6 @@ class Else(Node):
                 or result is None:
             result = self.otherwise.eval(env)
         return result
-
-
-class Include(Node):
-    @staticmethod
-    def parse(obj: Any, parent: Node) -> Node:
-        includes = obj['::include']
-        if isinstance(includes, str):
-            includes = [includes]
-        nodes = []
-        for include in includes:
-            # nodes.append(load_file(include, parent))
-            # FIXME
-            pass
-        pass
-
-    def eval(self, env: Environment) -> Value:
-        pass
 
 
 class Object(Node):

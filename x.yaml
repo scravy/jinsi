@@ -1,0 +1,9 @@
+::include:
+  - a.yaml
+  - b.yaml
+
+::let:
+  x: three
+
+value:
+  ::format: '{a} {b} {x}'
