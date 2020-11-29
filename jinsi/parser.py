@@ -6,7 +6,7 @@ from inspect import getattr_static
 
 import yaml
 
-from .exceptions import MalformedEachError, MalformedNameError, NoParseError, NoSuchFunctionError, JinsiException
+from .exceptions import MalformedEachError, MalformedNameError, NoParseError, NoSuchFunctionError
 from .functions import Functions
 from .nodes import *
 from .util import merge
@@ -17,6 +17,7 @@ class Parser:
 
     def __init__(self):
         self.name_regex = "^[a-z]([_-]?[a-z0-9])*$"
+        self.env_var_regex = "^[0-9_]*[A-Z][_A-Z0-9]*$"
         self.path = []
 
     def check_name(self, name):
@@ -44,21 +45,39 @@ class Parser:
             return self.parse_else(obj, parent)
         if '::let' in obj:
             return self.parse_let(obj, parent)
+        nodes = []
+        remaining = {}
         if '::ref' in obj:
             ref = obj['::ref']
-            if isinstance(ref, str) and ref[:1] == '$' or isinstance(ref, list) and ref[0][:1] == '$':
-                return self.parse_get_env(obj, parent)
-            return self.parse_get_let(obj, parent)
-        for key in obj:
+            if isinstance(ref, str) and re.match(self.env_var_regex, ref):
+                nodes.append(self.parse_get_env_var(obj, parent))
+            elif isinstance(ref, str) and ref[:1] == '$' or isinstance(ref, list) and ref[0][:1] == '$':
+                nodes.append(self.parse_get_dyn(obj, parent))
+            else:
+                nodes.append(self.parse_get_let(obj, parent))
+        for key, value in obj.items():
             if key[:8] == "::format":
-                return self.parse_format(obj, parent)
-            if key[:6] == "::call":
-                return self.parse_application(obj, parent)
-            if key[:6] == "::each":
-                return self.parse_each(obj, parent)
-            if key[:2] == "::":
-                return self.parse_function_application(obj, parent)
-        return self.parse_object(obj, parent)
+                nodes.append(self.parse_format(key, value, parent))
+            elif key[:6] == "::call":
+                nodes.append(self.parse_application(key, value, parent))
+            elif key[:6] == "::each":
+                nodes.append(self.parse_each(key, value, parent))
+            elif key[:2] == "::":
+                if key not in {"::ref", "::call", "::each", "::format"}:
+                    nodes.append(self.parse_function_application(key, value, parent))
+            else:
+                remaining[key] = value
+
+        if not remaining and len(nodes) == 1:
+            return nodes[0]
+        if not nodes:
+            return self.parse_object(remaining, parent)
+        nodes.append(self.parse_object(remaining, parent))
+        merge_node = FunctionApplication(parent, function=Functions.merge)
+        for node in nodes:
+            node.parent = merge_node
+        merge_node.args = nodes
+        return merge_node
 
     def parse_constant(self, obj, parent: Node) -> Node:
         return Constant(parent, obj)
@@ -69,16 +88,22 @@ class Parser:
             path = path.split(".")
         if not isinstance(path, list):
             raise NoParseError()
+        self.check_name(path[0])
         return GetLet(parent, path)
 
-    def parse_get_env(self, obj, parent: Node) -> Node:
+    def parse_get_dyn(self, obj, parent: Node) -> Node:
         path = obj['::ref']
         if isinstance(path, str):
             path = path.split(".")
         if not isinstance(path, list):
             raise NoParseError()
         path[0] = path[0][1:]  # remove leading dollar sign
-        return GetEnv(parent, path)
+        self.check_name(path[0])
+        return GetDyn(parent, path)
+
+    def parse_get_env_var(self, obj, parent: Node) -> Node:
+        path = obj['::ref']
+        return GetEnvVar(parent, path)
 
     def parse_let(self, obj: Any, parent: Node) -> Node:
         node = Let(parent)
@@ -121,68 +146,59 @@ class Parser:
             seq.elements.append(self.parse_node(item, seq))
         return seq
 
-    def parse_function_application(self, obj, parent: Node) -> Node:
-        for key in obj:
-            if key[:2] == "::":
-                name = key[2:]
-                if name[-1:] == "_":
-                    name = name[:-1]
-                try:
-                    if not isinstance(getattr_static(Functions, name), staticmethod):
-                        raise NoSuchFunctionError(name)
-                except AttributeError:
+    def parse_function_application(self, key: str, args, parent: Node) -> Node:
+        if key[:2] == "::":
+            name = key[2:]
+            if name[-1:] == "_":
+                name = name[:-1]
+            try:
+                if not isinstance(getattr_static(Functions, name), staticmethod):
                     raise NoSuchFunctionError(name)
-                func = getattr(Functions, name)
-                app = FunctionApplication(parent, func)
-                args = obj[key]
-                if isinstance(args, list):
-                    for arg in args:
-                        app.args.append(self.parse_node(arg, app))
-                elif len(args) == 1:
-                    app.args.append(self.parse_node(args, app))
-                else:
-                    raise NoParseError()
-                return app
-        raise NoParseError()
+            except AttributeError:
+                raise NoSuchFunctionError(name)
+            func = getattr(Functions, name)
+            app = FunctionApplication(parent, func)
+            if isinstance(args, list):
+                for arg in args:
+                    app.args.append(self.parse_node(arg, app))
+            elif len(args) == 1:
+                app.args.append(self.parse_node(args, app))
+            else:
+                raise NoParseError()
+            return app
 
-    def parse_application(self, obj, parent: Node) -> Node:
-        for key, value in obj.items():
-            if key[:6] == "::call":
-                if key == "::call" and isinstance(value, str):
-                    name = value
-                else:
-                    try:
-                        _, name = key.split(" ")
-                    except ValueError:
-                        name = ""
-                self.check_name(name)
-                app = Application(parent, name)
-                if isinstance(value, list):
-                    app.kwargs[""] = self.parse_sequence(value, app)
-                elif isinstance(value, dict):
-                    for arg_key, arg_value in value.items():
-                        if arg_key[:1] == "$":
-                            arg_key = arg_key[1:]
-                        app.kwargs[arg_key] = self.parse_node(arg_value, app)
-                return app
-        raise JinsiException()
-
-    def parse_each(self, obj, parent: Node) -> Node:
-        for key, value in obj.items():
-            if key[:6] == "::each":
+    def parse_application(self, key: str, value, parent: Node) -> Node:
+        if key[:6] == "::call":
+            if key == "::call" and isinstance(value, str):
+                name = value
+            else:
                 try:
-                    _, source, as_, target = key.split(" ")
-                    if as_ != "as":
-                        raise MalformedEachError()
+                    _, name = key.split(" ")
                 except ValueError:
-                    raise MalformedEachError()
-                each = Each(parent, source, target)
-                each.body = self.parse_node(value, each)
-                return each
-        raise NoParseError()
+                    name = ""
+            self.check_name(name)
+            app = Application(parent, name)
+            if isinstance(value, list):
+                app.kwargs[""] = self.parse_sequence(value, app)
+            elif isinstance(value, dict):
+                for arg_key, arg_value in value.items():
+                    if arg_key[:1] == "$":
+                        arg_key = arg_key[1:]
+                    app.kwargs[arg_key] = self.parse_node(arg_value, app)
+            return app
 
-    def parse_format(self, obj: Any, parent: Node) -> Node:
-        for key, value in obj.items():
-            if key == "::format":
-                return Format(parent, value)
-        raise NoParseError()
+    def parse_each(self, key: str, value, parent: Node) -> Node:
+        if key[:6] == "::each":
+            try:
+                _, source, as_, target = key.split(" ")
+                if as_ != "as":
+                    raise MalformedEachError()
+            except ValueError:
+                raise MalformedEachError()
+            each = Each(parent, source, target)
+            each.body = self.parse_node(value, each)
+            return each
+
+    def parse_format(self, key: str, value, parent: Node) -> Node:
+        if key == "::format":
+            return Format(parent, value)

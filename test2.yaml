@@ -24,10 +24,22 @@ list:
   - ::ref: y
   - ::ref: $x
   - ::ref: $y
+  - ::ref: SHELL
+  - ::ref: HOSTNAME
+    ::else: unknown
 
 x:
-  - ::ref: $z
-    ::else: fuck it
+  ::let:
+    something:
+      ::ref: $m
+  y:
+    - ::ref: something
+      ::let:
+        $m: 3
+      ::else:
+        ::ref: $z
+    - ::ref: $q
+      ::else: All okay.
 
 applied:
   ::let:
@@ -36,5 +48,6 @@ applied:
     $x: keyqux
     $y: keyquuz
     $z: zeeee
+#  ::call: template
   ::call template:
     $y: callquuz

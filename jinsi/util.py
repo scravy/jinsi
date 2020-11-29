@@ -5,7 +5,7 @@ from typing import Callable
 from jinsi.exceptions import NoMergePossible
 
 
-def cached_method(func):
+def cachedmethod(func):
     @functools.wraps(func)
     def wrapper(self):
         try:

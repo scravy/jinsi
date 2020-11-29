@@ -3,8 +3,8 @@ from __future__ import annotations
 from typing import Dict, List, Any, FrozenSet
 
 from .environment import Environment
-from .exceptions import NoSuchVariableError
-from .util import Singleton, select, substitute, cached_method
+from .exceptions import NoSuchVariableError, NoSuchEnvironmentVariableError
+from .util import Singleton, select, substitute, cachedmethod
 
 Value = Any
 
@@ -22,7 +22,7 @@ class Node:
     def evaluate(self, env: Environment) -> Value:
         pass
 
-    def requires_env(self) -> FrozenSet[str]:
+    def requires(self) -> FrozenSet[str]:
         return frozenset()
 
 
@@ -53,25 +53,45 @@ class GetLet(Node):
     def evaluate(self, env: Environment) -> Value:
         result = self.get_let(self.path[0]).evaluate(env)
         if len(self.path) > 1:
-            # TODO: Should this be more strict - right now select() gracefully falls back to None
             result = select(result, *self.path[1:])
         return result
 
+    @cachedmethod
+    def requires(self) -> FrozenSet[str]:
+        result = {self.path[0]}
+        try:
+            result.update(self.get_let(self.path[0]).requires())
+        except NoSuchVariableError:
+            pass
+        return frozenset(result)
 
-class GetEnv(Node):
+
+class GetDyn(Node):
     def __init__(self, parent: Node, path: List[str]):
         super().__init__(parent)
         self.path: List[str] = path
 
     def evaluate(self, env: Environment) -> Value:
-        result = env.get_env(self.path[0])
+        result = env.get_dyn(self.path[0])
         if len(self.path) > 1:
             result = select(result, *self.path[1:])
         return result
 
-    @cached_method
-    def requires_env(self) -> FrozenSet[str]:
-        return frozenset([self.path[0]])
+    @cachedmethod
+    def requires(self) -> FrozenSet[str]:
+        return frozenset([f"${self.path[0]}"])
+
+
+class GetEnvVar(Node):
+    def __init__(self, parent: Node, name: str):
+        super().__init__(parent)
+        self.name: str = name
+
+    def evaluate(self, env: Environment) -> Value:
+        return env.get_var(self.name)
+
+    def requires(self) -> FrozenSet[str]:
+        return frozenset([self.name])
 
 
 class Let(Node):
@@ -94,16 +114,20 @@ class Let(Node):
             return super().get_let(name)
         return self.let[name]
 
-    @cached_method
-    def requires_env(self) -> FrozenSet[str]:
-        result = set(self.body.requires_env())
+    @cachedmethod
+    def requires(self) -> FrozenSet[str]:
+        result = set(self.body.requires())
         for node in self.env.values():
-            result.update(node.requires_env())
+            result.update(node.requires())
         for name in self.env.keys():
+            try:
+                result.remove(f"${name}")
+            except KeyError:
+                pass
+        for name in self.let.keys():
             try:
                 result.remove(name)
             except KeyError:
-                # TODO: This could be a warning - env defined but not consumed
                 pass
         return frozenset(result)
 
@@ -114,29 +138,42 @@ class Else(Node):
         self.body: Node = Empty()
         self.otherwise: Node = Empty()
 
-    def evaluate(self, env: Environment) -> Value:
+    def evaluate_body(self, env: Environment):
         # noinspection PyBroadException
         try:
-            result = self.body.evaluate(env)
-        except Exception:
-            # TODO: Should this method actually catch exceptions or merely default empty values?
-            result = None
+            return self.body.evaluate(env)
+        except (NoSuchEnvironmentVariableError, ArithmeticError):
+            return None
+
+    def evaluate(self, env: Environment) -> Value:
+        result = self.evaluate_body(env)
         if self.empty(result):
             result = self.otherwise.evaluate(env)
         return result
 
     @staticmethod
     def empty(result) -> bool:
-        if isinstance(result, (list, dict, str)) and len(result) == 0:
-            return True
-        if isinstance(result, bool) and not result:
-            return True
+        if isinstance(result, (bool, list, dict, str)):
+            return not result
         return result is None
 
-    @cached_method
-    def requires_env(self) -> FrozenSet[str]:
-        result = set(self.body.requires_env())
-        result.update(self.otherwise.requires_env())
+    @cachedmethod
+    def requires(self) -> FrozenSet[str]:
+        result = set(self.body.requires())
+
+        def is_env_var(name: str) -> bool:
+            return any(char.isupper() for char in name)
+
+        def is_env(name: str) -> bool:
+            return name[:1] == '$'
+
+        if not any(is_env(x) or is_env_var(x) for x in result):
+            body_result = self.body.evaluate(Environment())
+            if self.empty(body_result):
+                return self.otherwise.requires()
+            else:
+                return self.body.requires()
+        result.update(self.otherwise.requires())
         return frozenset(result)
 
 
@@ -151,11 +188,11 @@ class Object(Node):
             result[key] = node.evaluate(env)
         return result
 
-    @cached_method
-    def requires_env(self) -> FrozenSet[str]:
+    @cachedmethod
+    def requires(self) -> FrozenSet[str]:
         result = set()
         for node in self.children.values():
-            result.update(node.requires_env())
+            result.update(node.requires())
         return frozenset(result)
 
 
@@ -170,11 +207,11 @@ class Sequence(Node):
             result.append(element.evaluate(env))
         return result
 
-    @cached_method
-    def requires_env(self) -> FrozenSet[str]:
+    @cachedmethod
+    def requires(self) -> FrozenSet[str]:
         result = set()
         for node in self.elements:
-            result.update(node.requires_env())
+            result.update(node.requires())
         return frozenset(result)
 
 
@@ -191,11 +228,11 @@ class FunctionApplication(Node):
         result = self.function(*args)
         return result
 
-    @cached_method
-    def requires_env(self) -> FrozenSet[str]:
+    @cachedmethod
+    def requires(self) -> FrozenSet[str]:
         result = set()
         for node in self.args:
-            result.update(node.requires_env())
+            result.update(node.requires())
         return frozenset(result)
 
 
@@ -211,14 +248,15 @@ class Application(Node):
             my_env[key] = node.evaluate(env)
         return self.get_let(self.template).evaluate(env.with_env(my_env))
 
-    @cached_method
-    def requires_env(self) -> FrozenSet[str]:
-        result = set(self.get_let(self.template).requires_env())
+    @cachedmethod
+    def requires(self) -> FrozenSet[str]:
+        result = set(self.get_let(self.template).requires())
+        for node in self.kwargs.values():
+            result.update(node.requires())
         for name in self.kwargs.keys():
             try:
-                result.remove(name)
+                result.remove(f"${name}")
             except KeyError:
-                # TODO: this could be a warning - template does not use this argument
                 pass
         return frozenset(result)
 
@@ -239,7 +277,7 @@ class Each(Node):
 
     def evaluate(self, env: Environment) -> Value:
         if self.source[:1] == "$":
-            value = env.get_env(self.source[1:])
+            value = env.get_dyn(self.source[1:])
         else:
             value = self.parent.get_let(self.source).evaluate(env)
         results = []
@@ -255,11 +293,14 @@ class Each(Node):
                 results.append(result)
         return results
 
-    @cached_method
-    def requires_env(self) -> FrozenSet[str]:
-        result = set(self.body.requires_env())
-        if self.target[:1] == "$":
-            result.add(self.target[1:])
+    @cachedmethod
+    def requires(self) -> FrozenSet[str]:
+        result = set(self.body.requires())
+        result.add(self.source)
+        try:
+            result.remove(self.target)
+        except KeyError:
+            pass
         return frozenset(result)
 
 
@@ -271,18 +312,17 @@ class Format(Node):
     def evaluate(self, env: Environment) -> Value:
         def subst(key: str) -> str:
             if key[:1] == "$":
-                return env.get_env(key[1:])
+                return env.get_dyn(key[1:])
             return self.get_let(key).evaluate(env)
 
         return substitute(self.value, subst)
 
-    @cached_method
-    def requires_env(self) -> FrozenSet[str]:
+    @cachedmethod
+    def requires(self) -> FrozenSet[str]:
         result = set()
 
         def record(key: str) -> str:
-            if key[:1] == "$":
-                result.add(key[1:])
+            result.add(key)
             return ""
 
         substitute(self.value, record)

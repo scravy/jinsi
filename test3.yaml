@@ -1,0 +1,24 @@
+::let:
+  users:
+    ::each $ as $account:
+      ::object:
+        - ::ref: $account
+        - Properties:
+            Some: props
+
+  robousers:
+    ::each $ as $account:
+      ::object:
+        - ::ref: $account
+        - Properties:
+            Some: props
+
+Resources:
+  ::call users:
+    - jane
+    - john
+  ::call robousers:
+    - ava
+    - hal
+  a: b
+  c: d
