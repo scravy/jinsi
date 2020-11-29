@@ -9,6 +9,7 @@
     - ::ref: y
     - ::ref: $x
     - ::ref: $y
+    - ::ref: $z
 
 formatted:
   ::format: hello {x} woohoo {y} yeah {$x} and {$y}
@@ -24,11 +25,16 @@ list:
   - ::ref: $x
   - ::ref: $y
 
+x:
+  - ::ref: $z
+    ::else: fuck it
+
 applied:
   ::let:
     x: keyfoo
     y: keybar
     $x: keyqux
     $y: keyquuz
+    $z: zeeee
   ::call template:
     $y: callquuz

@@ -1,7 +1,27 @@
+import functools
 import re
 from typing import Callable
 
 from jinsi.exceptions import NoMergePossible
+
+
+def cached_method(func):
+    @functools.wraps(func)
+    def wrapper(self):
+        try:
+            cache = self.__method_cache__
+        except AttributeError:
+            self.__method_cache__ = {}
+            cache = self.__method_cache__
+        name = func.__name__
+        try:
+            result = cache[name]
+        except KeyError:
+            result = func(self)
+            cache[name] = result
+        return result
+
+    return wrapper
 
 
 class Singleton(type):
@@ -11,10 +31,6 @@ class Singleton(type):
         if cls not in cls._instances:
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
         return cls._instances[cls]
-
-
-def head(obj):
-    return next(iter(obj))
 
 
 def select(obj, *path, fallback=None):

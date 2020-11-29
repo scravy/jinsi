@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, Any, Union
+from typing import Dict, Any
 
 from .exceptions import NoSuchEnvironmentVariableError
 
@@ -8,16 +8,18 @@ Value = Any
 
 
 class Environment:
-    def __init__(self, env: Dict[str, Value], parent: Union[type(None), Environment] = None):
-        self.parent = parent
-        self.env: Dict[str, Value] = env
+    def __init__(self):
+        self.env: Dict[str, Value] = {}
 
     def get_env(self, key: str) -> Value:
         if key in self.env:
             return self.env[key]
-        if self.parent:
-            return self.parent.get_env(key)
         raise NoSuchEnvironmentVariableError(key)
 
     def with_env(self, env: Dict[str, Value]) -> Environment:
-        return Environment(env, self)
+        new_env = Environment()
+        for key, value in self.env.items():
+            new_env.env[key] = value
+        for key, value in env.items():
+            new_env.env[key] = value
+        return new_env

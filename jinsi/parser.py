@@ -6,8 +6,8 @@ from inspect import getattr_static
 
 import yaml
 
-from jinsi import MalformedNameError, NoParseError, NoSuchFunctionError, Functions, JinsiException
-from .exceptions import MalformedEachError
+from .exceptions import MalformedEachError, MalformedNameError, NoParseError, NoSuchFunctionError, JinsiException
+from .functions import Functions
 from .nodes import *
 from .util import merge
 
@@ -17,6 +17,7 @@ class Parser:
 
     def __init__(self):
         self.name_regex = "^[a-z]([_-]?[a-z0-9])*$"
+        self.path = []
 
     def check_name(self, name):
         if not re.match(self.name_regex, name):
@@ -31,6 +32,8 @@ class Parser:
             includes = obj['::include']
             if isinstance(includes, str):
                 includes = [includes]
+            if not isinstance(includes, list):
+                raise NoParseError()
             del obj['::include']
             docs = [obj]
             for include in includes:
@@ -168,7 +171,9 @@ class Parser:
         for key, value in obj.items():
             if key[:6] == "::each":
                 try:
-                    _, source, _, target = key.split(" ")
+                    _, source, as_, target = key.split(" ")
+                    if as_ != "as":
+                        raise MalformedEachError()
                 except ValueError:
                     raise MalformedEachError()
                 each = Each(parent, source, target)
