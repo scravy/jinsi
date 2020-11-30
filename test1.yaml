@@ -1,0 +1,31 @@
+::let:
+  name: XMLRpcParser_Main
+
+docs:
+  - ::snakecase:
+      ::ref: name
+  - ::uppercase:
+      ::snakecase:
+        ::ref: name
+  - ::uppercase:
+      ::kebabcase:
+        ::ref: name
+  - ::kebabcase:
+      ::ref: name
+  - ::titlecase:
+      ::ref: name
+  - ::camelcase:
+      ::ref: name
+  - ::div:
+      - 1
+      - 7
+      - null
+      - 28
+  - ::div:
+      - 355
+      - 113
+  - ::div:
+      - 2.7
+      - 3.01
+      - null
+      - 17

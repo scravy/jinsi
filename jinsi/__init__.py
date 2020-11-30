@@ -7,7 +7,8 @@ import yaml
 from .environment import Environment
 from .nodes import Node, Empty, Value, Constant
 from .parser import Parser
-from .util import Singleton, select, substitute, merge
+from .util import Singleton, select, substitute, merge, Dec
+from .yamlutil import Loader, Dumper
 
 
 def parse(doc: Union[str, dict, list]) -> Node:
@@ -23,18 +24,18 @@ def evaluate(doc: Union[Node, str, dict, list]) -> Value:
 
 
 def render(doc: Union[Node, str, dict, list]) -> str:
-    return yaml.safe_dump(evaluate(doc))
+    return yaml.dump(evaluate(doc), Dumper=Dumper)
 
 
 def render_file(file: str) -> str:
     node = load_file(file)
-    return yaml.safe_dump(evaluate(node))
+    return yaml.dump(evaluate(node), Dumper=Dumper)
 
 
 def load_yaml(yaml_str: str) -> Node:
     import textwrap
     yaml_str = textwrap.dedent(yaml_str)
-    doc = yaml.safe_load(yaml_str)
+    doc = yaml.load(yaml_str, Loader=Loader)
     if not isinstance(doc, (list, dict)):
         return Constant(Empty(), doc)
     return parse(doc)
@@ -42,7 +43,7 @@ def load_yaml(yaml_str: str) -> Node:
 
 def load_file(file: str) -> Node:
     with open(file) as f:
-        doc = yaml.safe_load(f)
+        doc = yaml.load(f, Loader=Loader)
     if not isinstance(doc, (list, dict)):
         return Constant(Empty(), doc)
     return parse(doc)

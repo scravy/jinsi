@@ -1,18 +1,23 @@
-from typing import List
+from jinsi.util import parse_name, Dec
 
 
 class Functions:
     @staticmethod
     def titlecase(value):
-        return Name(value).titlecase()
+        return "".join(part[:1].upper() + part[1:] for part in parse_name(value))
 
     @staticmethod
     def kebabcase(value):
-        return Name(value).kebabcase()
+        return "-".join(parse_name(value))
 
     @staticmethod
     def snakecase(value):
-        return Name(value).snakecase()
+        return "_".join(parse_name(value))
+
+    @staticmethod
+    def camelcase(value):
+        name = Functions.titlecase(value)
+        return name[:1].lower() + name[1:]
 
     @staticmethod
     def uppercase(value):
@@ -27,8 +32,55 @@ class Functions:
         return {key: value}
 
     @staticmethod
-    def concat(*strings):
-        return "".join([str(s) for s in strings])
+    def number(value):
+        return Dec(value)
+
+    @staticmethod
+    def string(value):
+        return str(value)
+
+    @staticmethod
+    def boolean(value):
+        return bool(value)
+
+    @staticmethod
+    def sum(*args):
+        result = Dec(0)
+        for arg in args:
+            result += Dec(arg)
+        return result
+
+    @staticmethod
+    def product(*args):
+        result = Dec(1)
+        for arg in args:
+            result *= Dec(arg)
+        return result
+
+    @staticmethod
+    def add(a, b):
+        return Dec(a) + Dec(b)
+
+    @staticmethod
+    def sub(a, b):
+        return Dec(a) - Dec(b)
+
+    @staticmethod
+    def mul(a, b):
+        return Dec(a) * Dec(b)
+
+    @staticmethod
+    def div(a, b, maxscale=None, minscale=17):
+        return Dec.div(Dec(a), Dec(b), maxscale, minscale)
+
+    @staticmethod
+    def concat(*items):
+        if all(isinstance(item, list) for item in items):
+            result = []
+            for ls in items:
+                for item in ls:
+                    result.append(item)
+        return "".join([str(s) for s in items])
 
     @staticmethod
     def merge(*items):
@@ -39,47 +91,3 @@ class Functions:
             for key, value in item.items():
                 obj[key] = value
         return obj
-
-
-class Name:
-    def __init__(self, name):
-        parts = []
-        for p1 in str(name).split("-"):
-            for p2 in p1.split("_"):
-                for p3 in Name.parse_camel_case(p2):
-                    parts.append(p3.lower())
-        self.parts = parts
-
-    def titlecase(self):
-        return "".join(part[:1].upper() + part[1:] for part in self.parts)
-
-    def camelcase(self):
-        name = self.titlecase()
-        return name[:1].lower() + name[1:]
-
-    def kebabcase(self):
-        return "-".join(self.parts)
-
-    def snakecase(self):
-        return "_".join(self.parts)
-
-    @staticmethod
-    def parse_camel_case(name: str) -> List[str]:
-        parts = []
-        current_part = []
-        last_was_upper = False
-        for char in name:
-            if char.isupper() and not last_was_upper:
-                if current_part:
-                    parts.append("".join(current_part))
-                current_part = []
-            elif char.islower() and last_was_upper:
-                last = current_part.pop()
-                if current_part:
-                    parts.append("".join(current_part))
-                current_part = [last]
-            current_part.append(char)
-            last_was_upper = char.isupper()
-        if current_part:
-            parts.append("".join(current_part))
-        return parts

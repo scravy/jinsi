@@ -15,8 +15,9 @@
               ::else: default
             PasswordResetRequired: Yes
   users:
-    ::each $ as $user:
-      ::call user: []
+    ::merge:
+      ::each $ as $user:
+        ::call user:
 
 Something:
   ::let:
@@ -32,10 +33,10 @@ Something:
       - ">"
 
 Resources:
-  ::merge:
-    - ::call users:
-        - username: jim
-          password: one
-        - username: jack
-          password: two
-        - username: johnny
+  ::call users:
+    - username: jim
+      password: one
+    - username: jack
+      password: two
+    - username: johnny
+
