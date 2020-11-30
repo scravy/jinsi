@@ -161,10 +161,8 @@ class Parser:
             if isinstance(args, list):
                 for arg in args:
                     app.args.append(self.parse_node(arg, app))
-            elif len(args) == 1:
-                app.args.append(self.parse_node(args, app))
             else:
-                raise NoParseError()
+                app.args.append(self.parse_node(args, app))
             return app
 
     def parse_application(self, key: str, value, parent: Node) -> Node:

@@ -16,6 +16,7 @@ docs:
       ::ref: name
   - ::camelcase:
       ::ref: name
+  - ::titlecase: XmlRPCProcessor_23
   - ::div:
       - 1
       - 7
@@ -24,6 +25,10 @@ docs:
   - ::div:
       - 355
       - 113
+  - ::div:
+      - 355
+      - 113
+      - 20
   - ::div:
       - 2.7
       - 3.01
