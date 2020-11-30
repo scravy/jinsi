@@ -57,7 +57,7 @@ class Parser:
                 nodes.append(self.parse_get_let(obj, parent))
         for key, value in obj.items():
             if key[:8] == "::format":
-                nodes.append(self.parse_format(key, value, parent))
+                nodes.append(self.parse_format(value, parent))
             elif key[:6] == "::call":
                 nodes.append(self.parse_application(key, value, parent))
             elif key[:6] == "::each":
@@ -147,56 +147,55 @@ class Parser:
         return seq
 
     def parse_function_application(self, key: str, args, parent: Node) -> Node:
-        if key[:2] == "::":
-            name = key[2:]
-            if name[-1:] == "_":
-                name = name[:-1]
-            try:
-                if not isinstance(getattr_static(Functions, name), staticmethod):
-                    raise NoSuchFunctionError(name)
-            except AttributeError:
+        name = key[2:]
+        if name[-1:] == "_":
+            name = name[:-1]
+        try:
+            if not isinstance(getattr_static(Functions, name), staticmethod):
                 raise NoSuchFunctionError(name)
-            func = getattr(Functions, name)
-            app = FunctionApplication(parent, func)
-            if isinstance(args, list):
-                for arg in args:
-                    app.args.append(self.parse_node(arg, app))
+        except AttributeError:
+            raise NoSuchFunctionError(name)
+        func = getattr(Functions, name)
+        app = FunctionApplication(parent, func)
+        if isinstance(args, list):
+            for arg in args:
+                app.args.append(self.parse_node(arg, app))
+        else:
+            if isinstance(args, str):
+                app.args.append(self.parse_format(args, app))
             else:
                 app.args.append(self.parse_node(args, app))
-            return app
+        return app
 
     def parse_application(self, key: str, value, parent: Node) -> Node:
-        if key[:6] == "::call":
-            if key == "::call" and isinstance(value, str):
-                name = value
-            else:
-                try:
-                    _, name = key.split(" ")
-                except ValueError:
-                    name = ""
-            self.check_name(name)
-            app = Application(parent, name)
-            if isinstance(value, list):
-                app.kwargs[""] = self.parse_sequence(value, app)
-            elif isinstance(value, dict):
-                for arg_key, arg_value in value.items():
-                    if arg_key[:1] == "$":
-                        arg_key = arg_key[1:]
-                    app.kwargs[arg_key] = self.parse_node(arg_value, app)
-            return app
+        if key == "::call" and isinstance(value, str):
+            name = value
+        else:
+            try:
+                _, name = key.split(" ")
+            except ValueError:
+                name = ""
+        self.check_name(name)
+        app = Application(parent, name)
+        if isinstance(value, list):
+            app.kwargs[""] = self.parse_sequence(value, app)
+        elif isinstance(value, dict):
+            for arg_key, arg_value in value.items():
+                if arg_key[:1] == "$":
+                    arg_key = arg_key[1:]
+                app.kwargs[arg_key] = self.parse_node(arg_value, app)
+        return app
 
     def parse_each(self, key: str, value, parent: Node) -> Node:
-        if key[:6] == "::each":
-            try:
-                _, source, as_, target = key.split(" ")
-                if as_ != "as":
-                    raise MalformedEachError()
-            except ValueError:
+        try:
+            _, source, as_, target = key.split(" ")
+            if as_ != "as":
                 raise MalformedEachError()
-            each = Each(parent, source, target)
-            each.body = self.parse_node(value, each)
-            return each
+        except ValueError:
+            raise MalformedEachError()
+        each = Each(parent, source, target)
+        each.body = self.parse_node(value, each)
+        return each
 
-    def parse_format(self, key: str, value, parent: Node) -> Node:
-        if key == "::format":
-            return Format(parent, value)
+    def parse_format(self, value, parent: Node) -> Node:
+        return Format(parent, value)

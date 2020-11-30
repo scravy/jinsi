@@ -2,8 +2,7 @@
   name: XMLRpcParser_Main
 
 docs:
-  - ::snakecase:
-      ::ref: name
+  - ::snakecase: <<name>>
   - ::uppercase:
       ::snakecase:
         ::ref: name

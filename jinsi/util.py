@@ -50,7 +50,7 @@ def substitute(thing, callback: Callable[[str], str]):
     if isinstance(thing, (type(None), bool, int, float)):
         return thing
     if isinstance(thing, str):
-        fs = re.split("{(\\$?[a-zA-Z0-9-_]+)}", thing)
+        fs = re.split("<<(\\$?[a-zA-Z0-9-_]+)>>", thing)
         result = []
         is_even = True
         for f in fs:

@@ -9,8 +9,10 @@ Value = Any
 
 
 class Environment:
-    def __init__(self):
+    def __init__(self, **env):
         self.dyn: Dict[str, Value] = {}
+        for key, value in env.items():
+            self.dyn[key] = value
 
     @staticmethod
     def get_var(key: str) -> Value:

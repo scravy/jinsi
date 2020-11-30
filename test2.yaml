@@ -12,12 +12,12 @@
     - ::ref: $z
 
 formatted:
-  ::format: hello {x} woohoo {y} yeah {$x} and {$y}
+  ::format: hello <<x>> woohoo <<y>> yeah <<$x>> and <<$y>>
 
 cool:
   ::format:
-    '{x}': "{y}"
-    woohoo: "{$x}/{$y}"
+    some-<<x>>: <<y>>
+    woohoo: <<x>>/<<y>>
 
 list:
   - ::ref: x
@@ -48,6 +48,9 @@ applied:
     $x: keyqux
     $y: keyquuz
     $z: zeeee
-#  ::call: template
+
   ::call template:
     $y: callquuz
+
+applied2:
+  ::call: template

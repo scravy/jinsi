@@ -17,19 +17,19 @@ def parse(doc: Union[str, dict, list]) -> Node:
     return Parser().parse_node(doc, Empty())
 
 
-def evaluate(doc: Union[Node, str, dict, list]) -> Value:
+def evaluate(doc: Union[Node, str, dict, list], **env) -> Value:
     if not isinstance(doc, Node):
         doc: Node = parse(doc)
-    return doc.evaluate(Environment())
+    return doc.evaluate(Environment(**env))
 
 
-def render(doc: Union[Node, str, dict, list]) -> str:
-    return yaml.dump(evaluate(doc), Dumper=Dumper)
+def render(doc: Union[Node, str, dict, list], **env) -> str:
+    return yaml.dump(evaluate(doc, **env), Dumper=Dumper)
 
 
-def render_file(file: str) -> str:
+def render_file(file: str, **env) -> str:
     node = load_file(file)
-    return yaml.dump(evaluate(node), Dumper=Dumper)
+    return yaml.dump(evaluate(node, **env), Dumper=Dumper)
 
 
 def load_yaml(yaml_str: str) -> Node:
