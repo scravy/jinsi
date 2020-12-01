@@ -42,8 +42,15 @@ class Parser:
                     docs.append(yaml.safe_load(f))
             obj = merge(*docs)
         key_set = set(obj.keys())
+        if key_set == {'::all'}:
+            return self.parse_all(obj['::all'], parent)
+        if key_set == {'::any'}:
+            return self.parse_any(obj['::any'], parent)
         if key_set == {'::when', '::then'} or key_set == {'::when', '::then', '::else'}:
             return self.parse_conditional(obj, parent)
+        for keyword in ['::all', '::any', '::when', '::then']:
+            if keyword in key_set:
+                raise NoParseError()
         if '::else' in obj:
             return self.parse_else(obj, parent)
         if '::let' in obj:
@@ -66,7 +73,7 @@ class Parser:
                 nodes.append(self.parse_application(key, value, parent))
             elif key[:6] == "::each":
                 nodes.append(self.parse_each(key, value, parent))
-            elif key[:2] == "::":
+            elif len(key) > 2 and key[:2] == "::":
                 if key not in {"::ref", "::call", "::each", "::format"}:
                     nodes.append(self.parse_function_application(key, value, parent))
             else:
@@ -128,10 +135,28 @@ class Parser:
         return node
 
     def parse_conditional(self, obj, parent: Node) -> Node:
-        when_ = self.parse_node(obj['::when'], parent)
-        then_ = self.parse_node(obj['::then'], parent)
-        else_ = self.parse_node(obj['::else'], parent) if '::else' in obj else None
-        return When(parent, when_, then_, else_)
+        node = When(parent)
+        node.when = self.parse_node(obj['::when'], node)
+        node.then = self.parse_node(obj['::then'], node)
+        if '::else' in obj:
+            node.else_ = self.parse_node(obj['::else'], parent)
+        return node
+
+    def parse_all(self, obj, parent: Node) -> Node:
+        if not isinstance(obj, list):
+            raise NoParseError()
+        node = All(parent)
+        for item in obj:
+            node.nodes.append(self.parse_node(item, node))
+        return node
+
+    def parse_any(self, obj, parent: Node) -> Node:
+        if not isinstance(obj, list):
+            raise NoParseError()
+        node = Any(parent)
+        for item in obj:
+            node.nodes.append(self.parse_node(item, node))
+        return node
 
     def parse_else(self, obj: Any, parent: Node) -> Node:
         node = Else(parent)

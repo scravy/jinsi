@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from typing import Dict, List, Any, FrozenSet, Union
+from typing import Dict, List, Any, FrozenSet
 
 from .environment import Environment
 from .exceptions import NoSuchVariableError, NoSuchEnvironmentVariableError
-from .util import Singleton, select, substitute, cachedmethod
+from .util import Singleton, select, substitute, cachedmethod, empty
 
 Value = Any
 
@@ -20,7 +20,7 @@ class Node:
         return self.parent.get_let(name)
 
     def evaluate(self, env: Environment) -> Value:
-        pass
+        return None
 
     def requires(self) -> FrozenSet[str]:
         return frozenset()
@@ -147,15 +147,9 @@ class Else(Node):
 
     def evaluate(self, env: Environment) -> Value:
         result = self.evaluate_body(env)
-        if self.empty(result):
+        if empty(result):
             result = self.otherwise.evaluate(env)
         return result
-
-    @staticmethod
-    def empty(result) -> bool:
-        if isinstance(result, (bool, list, dict, str)):
-            return not result
-        return result is None
 
     @cachedmethod
     def requires(self) -> FrozenSet[str]:
@@ -169,7 +163,7 @@ class Else(Node):
 
         if not any(is_env(x) or is_env_var(x) for x in result):
             body_result = self.body.evaluate(Environment())
-            if self.empty(body_result):
+            if empty(body_result):
                 return self.otherwise.requires()
             else:
                 return self.body.requires()
@@ -305,19 +299,42 @@ class Each(Node):
 
 
 class When(Node):
-    def __init__(self, parent: Node, when: Node, then: Node, else_: Union[Node, type(None)] = None):
+    def __init__(self, parent: Node):
         super().__init__(parent)
-        self.when: Node = when
-        self.then: Node = then
-        self.else_: Union[Node, type(None)] = else_
+        self.when: Node = Empty()
+        self.then: Node = Empty()
+        self.else_: Node = Empty()
 
     def evaluate(self, env: Environment) -> Value:
-        if self.when.evaluate(env):
+        if not empty(self.when.evaluate(env)):
             return self.then.evaluate(env)
-        elif self.else_ is not None:
-            return self.else_.evaluate(env)
         else:
-            return None
+            return self.else_.evaluate(env)
+
+
+class All(Node):
+    def __init__(self, parent: Node):
+        super().__init__(parent)
+        self.nodes: List[Node] = []
+
+    def evaluate(self, env: Environment) -> Value:
+        for node in self.nodes:
+            if empty(node.evaluate(env)):
+                return False
+        return True
+
+
+class Any(Node):
+    def __init__(self, parent: Node):
+        super().__init__(parent)
+        self.nodes: List[Node] = []
+
+    def evaluate(self, env: Environment) -> Value:
+        for node in self.nodes:
+            result = node.evaluate(env)
+            if not empty(result):
+                return result
+        return False
 
 
 class Format(Node):

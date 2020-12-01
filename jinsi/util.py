@@ -310,10 +310,7 @@ class Dec(tuple):
         return Dec.div(self, Dec(other))
 
 
-if __name__ == '__main__':
-    # x = Dec("2.7")
-    # y = Dec("3.01")
-    x = Dec(355)
-    y = Dec(113)
-    print(f"RES: {x / y}")
-    print(f"RES: {355 / 113}")
+def empty(result) -> bool:
+    if isinstance(result, (bool, list, dict, str)):
+        return not result
+    return result is None

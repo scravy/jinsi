@@ -7,6 +7,14 @@ class Functions:
     def oneof(value, *items):
         return value in items
 
+    @staticmethod
+    def range_inclusive(from_, to):
+        return [Dec(x) for x in range(int(from_), int(to) + 1)]
+
+    @staticmethod
+    def range_exclusive(from_, to):
+        return [Dec(x) for x in range(int(from_), int(to))]
+
     # string functions
 
     @staticmethod
