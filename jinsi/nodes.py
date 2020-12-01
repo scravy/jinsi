@@ -267,7 +267,7 @@ class Each(Node):
         self.source: str = source
         self.target: str = target
         self.body: Node = Empty()
-        self._value: Value = None
+        self._value: Node = Empty()
 
     def get_let(self, name: str) -> Node:
         if name == self.target:
@@ -288,7 +288,7 @@ class Each(Node):
                 results.append(result)
         else:
             for entry in value:
-                self._value = entry
+                self._value: Node = Constant(self, entry)
                 result = self.body.evaluate(env)
                 results.append(result)
         return results

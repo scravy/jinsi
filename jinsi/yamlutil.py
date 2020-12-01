@@ -58,7 +58,8 @@ yaml.add_constructor('!dec', dec_constructor, Loader)
 
 
 class Dumper(yaml.Dumper):
-    pass
+    def ignore_aliases(self, data):
+        return True
 
 
 def dec_representer(dumper, data):

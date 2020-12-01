@@ -27,9 +27,7 @@ class Functions:
     def lowercase(value):
         return str(value).lower()
 
-    @staticmethod
-    def object(key, value):
-        return {key: value}
+    # data conversion
 
     @staticmethod
     def number(value):
@@ -42,6 +40,8 @@ class Functions:
     @staticmethod
     def boolean(value):
         return bool(value)
+
+    # aggregation
 
     @staticmethod
     def sum(*args):
@@ -56,6 +56,8 @@ class Functions:
         for arg in args:
             result *= Dec(arg)
         return result
+
+    # arithmetic
 
     @staticmethod
     def add(a, b):
@@ -73,6 +75,38 @@ class Functions:
     def div(a, b, maxscale=None, minscale=17):
         return Dec.div(Dec(a), Dec(b), maxscale, minscale)
 
+    # lists and strings
+
+    @staticmethod
+    def take(n: int, items):
+        if not isinstance(items, list):
+            items = str(items)
+        return items[:n]
+
+    @staticmethod
+    def drop(n: int, items):
+        if not isinstance(items, list):
+            items = str(items)
+        return items[n:]
+
+    @staticmethod
+    def split(sep, items, maxsplit=-1):
+        result = []
+        if isinstance(items, list):
+            current = []
+            result.append(current)
+            for item in items:
+                if sep == item:
+                    if len(result) == maxsplit:
+                        return result
+                    current = []
+                    result.append(current)
+                else:
+                    current.append(item)
+            return result
+        items = str(items)
+        return items.split(sep, maxsplit=maxsplit)
+
     @staticmethod
     def concat(*items):
         if all(isinstance(item, list) for item in items):
@@ -81,6 +115,12 @@ class Functions:
                 for item in ls:
                     result.append(item)
         return "".join([str(s) for s in items])
+
+    # object creation utilities
+
+    @staticmethod
+    def object(key, value):
+        return {key: value}
 
     @staticmethod
     def merge(*items):

@@ -235,12 +235,17 @@ class Dec(tuple):
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, Dec):
-            return False
+            try:
+                other = Dec(other)
+            except TypeError:
+                return False
         return self.value == other.value and self.scale == other.scale
 
     def __ne__(self, other) -> bool:
-        if not isinstance(other, Dec):
-            return True
+        try:
+            other = Dec(other)
+        except TypeError:
+            return False
         return self.value != other.value or self.scale != other.scale
 
     def __lt__(self, other) -> bool:
