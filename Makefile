@@ -7,5 +7,8 @@ publish:
 publish-prod:
 	python3 -m twine upload dist/*
 
+clean:
+	rm -rf build dist *.egg-info
+
 .PHONY: dist publish
 
