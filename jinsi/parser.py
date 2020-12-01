@@ -41,12 +41,16 @@ class Parser:
                 with open(include) as f:
                     docs.append(yaml.safe_load(f))
             obj = merge(*docs)
+        key_set = set(obj.keys())
+        if key_set == {'::when', '::then'} or key_set == {'::when', '::then', '::else'}:
+            return self.parse_conditional(obj, parent)
         if '::else' in obj:
             return self.parse_else(obj, parent)
         if '::let' in obj:
             return self.parse_let(obj, parent)
         nodes = []
         remaining = {}
+        # if ::when or ::then are here then NoParse - maybe?
         if '::ref' in obj:
             ref = obj['::ref']
             if isinstance(ref, str) and re.match(self.env_var_regex, ref):
@@ -122,6 +126,12 @@ class Parser:
             remainder[key] = value
         node.body = self.parse_node(remainder, node)
         return node
+
+    def parse_conditional(self, obj, parent: Node) -> Node:
+        when_ = self.parse_node(obj['::when'], parent)
+        then_ = self.parse_node(obj['::then'], parent)
+        else_ = self.parse_node(obj['::else'], parent) if '::else' in obj else None
+        return When(parent, when_, then_, else_)
 
     def parse_else(self, obj: Any, parent: Node) -> Node:
         node = Else(parent)

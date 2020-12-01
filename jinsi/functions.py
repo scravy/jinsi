@@ -2,6 +2,13 @@ from jinsi.util import parse_name, Dec
 
 
 class Functions:
+
+    @staticmethod
+    def oneof(value, *items):
+        return value in items
+
+    # string functions
+
     @staticmethod
     def titlecase(value):
         return "".join(part[:1].upper() + part[1:] for part in parse_name(value))
@@ -126,6 +133,8 @@ class Functions:
     def merge(*items):
         obj = {}
         for item in items:
+            if item is None:
+                continue
             if isinstance(item, list):
                 item = Functions.merge(*item)
             for key, value in item.items():

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, List, Any, FrozenSet
+from typing import Dict, List, Any, FrozenSet, Union
 
 from .environment import Environment
 from .exceptions import NoSuchVariableError, NoSuchEnvironmentVariableError
@@ -302,6 +302,22 @@ class Each(Node):
         except KeyError:
             pass
         return frozenset(result)
+
+
+class When(Node):
+    def __init__(self, parent: Node, when: Node, then: Node, else_: Union[Node, type(None)] = None):
+        super().__init__(parent)
+        self.when: Node = when
+        self.then: Node = then
+        self.else_: Union[Node, type(None)] = else_
+
+    def evaluate(self, env: Environment) -> Value:
+        if self.when.evaluate(env):
+            return self.then.evaluate(env)
+        elif self.else_ is not None:
+            return self.else_.evaluate(env)
+        else:
+            return None
 
 
 class Format(Node):
