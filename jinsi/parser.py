@@ -18,7 +18,6 @@ class Parser:
 
     def __init__(self):
         self.name_regex = "^[a-z]([_-]?[a-z0-9])*$"
-        self.env_var_regex = "^[0-9_]*[A-Z][_A-Z0-9]*$"
         self.path = []
 
     def check_name(self, name):
@@ -59,7 +58,6 @@ class Parser:
         nodes = []
         remaining = {}
         # TODO: decide - if ::when or ::then are here then NoParse - maybe?
-        # TODO: expr -> get
         # if '::ref' in obj:
         #     ref = obj['::ref']
         #     if isinstance(ref, str) and re.match(self.env_var_regex, ref):

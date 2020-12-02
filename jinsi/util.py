@@ -141,10 +141,13 @@ class Dec(object):
                 raise ValueError(scale)
             if not isinstance(value, (bool, int, float, str)):
                 raise TypeError(value)
+        else:
+            scale = 0
         if isinstance(value, Dec):
-            scale = value.scale
-            value = value.value
-        elif isinstance(value, float):
+            object.__setattr__(self, 'scale', value.scale)
+            object.__setattr__(self, 'value', value.value)
+            return
+        if isinstance(value, float):
             value = str(value)
         if isinstance(value, str):
             if re.match("^-?[0-9]+$", value):
@@ -156,8 +159,6 @@ class Dec(object):
                 scale = len(b)
             else:
                 raise ValueError(value)
-        elif isinstance(value, int):
-            scale = 0
         elif isinstance(value, bool):
             scale = 0
             if value:
@@ -190,6 +191,9 @@ class Dec(object):
 
     def __int__(self) -> int:
         return self.value // (10 ** self.scale)
+
+    def __float__(self) -> float:
+        return self.value / 10 ** self.scale
 
     def __bool__(self) -> bool:
         return self.value != 0

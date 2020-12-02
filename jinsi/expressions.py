@@ -59,25 +59,41 @@ def build_node(operators: List[str], nodes: List[Node], functions=FUNCTIONS):
     nodes.append(node)
 
 
-def is_digit(x):
-    return x in "0123456789"
+DIGITS = frozenset(x for x in "0123456789")
 
 
-def is_letter(x):
-    return x in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+def is_digit(char, digits=DIGITS):
+    return char in digits
 
 
-def parse_expression(expr: str, parent: Node) -> Node:
-    tokens = re.findall(r"-?[0-9]+|-?[0-9]+\\.[0-9]+|[+/*()<>=!-]+|\$?[a-zA-Z][a-zA-Z0-9._-]*", expr)
+LETTERS = frozenset(x for x in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+
+def is_letter(char, letters=LETTERS):
+    return char in letters
+
+
+def is_env_var(name, regex=re.compile(r"^[0-9_]*[A-Z][_A-Z0-9]*$")):
+    return regex.match(name)
+
+
+def parse_expression(
+        expr: str,
+        parent: Node,
+        regex=re.compile(r"-?[0-9]+|-?[0-9]+\\.[0-9]+|[+/*()<>=!-]+|\$?[a-zA-Z][a-zA-Z0-9._-]*"),
+) -> Node:
+    tokens = regex.findall(expr)
     nodes = []
     operators = []
     for token in tokens:
-        # TODO: handle get env var
         # TODO: handle -x (negated variable)
         if is_digit(token[0]) or (len(token) > 1 and token[0] == '-' and is_digit(token[1])):
             nodes.append(Constant(parent=Empty(), value=Dec(token)))
         elif is_letter(token[0]) and token not in ('and', 'or'):
-            nodes.append(GetLet(parent=Empty(), path=token.split(".")))
+            if is_env_var(token):
+                nodes.append(GetEnvVar(parent=Empty(), name=token))
+            else:
+                nodes.append(GetLet(parent=Empty(), path=token.split(".")))
         elif token[0] == '$':
             nodes.append(GetDyn(parent=Empty(), path=token[1:].split(".")))
         elif token == '(':
