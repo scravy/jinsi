@@ -11,25 +11,21 @@
     - 5
 
 doc:
-  xs:
-    ::split:
-      - 2
-      - ::get: xs
   ys:
     ::get: xs
   zs:
     ::let:
       x:
-        ::split:
-          - " "
+        ::explode:
           - hello world out there
+          - " "
     ::get: x
   qs:
     ::let:
       xs:
-        ::split:
-          - " "
+        ::explode:
           - hello out there
+          - " "
     ::each xs as x:
       ::get: x
 

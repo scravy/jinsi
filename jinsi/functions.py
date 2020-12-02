@@ -11,11 +11,11 @@ class Functions:
     def range_exclusive(from_, to):
         return [Dec(x) for x in range(int(from_), int(to))]
 
-    # string functions
+    # text functions
 
     @staticmethod
     def titlecase(value):
-        return "".join(part[:1].upper() + part[1:] for part in parse_name(value))
+        return "".join(part.capitalize() for part in parse_name(value))
 
     @staticmethod
     def kebabcase(value):
@@ -37,6 +37,49 @@ class Functions:
     @staticmethod
     def lowercase(value):
         return str(value).lower()
+
+    @staticmethod
+    def trim(value, chars=None):
+        return str(value).strip(chars)
+
+    @staticmethod
+    def trim_left(value, chars=None):
+        return str(value).lstrip(chars)
+
+    @staticmethod
+    def trim_right(value, chars=None):
+        return str(value).rstrip(chars)
+
+    @staticmethod
+    def pad_left(value: str, char: str, total_length: int):
+        diff = total_length - len(value)
+        if diff <= 0:
+            return value
+        return char * diff + value
+
+    @staticmethod
+    def pad_right(value: str, char: str, total_length: int):
+        diff = total_length - len(value)
+        if diff <= 0:
+            return value
+        return value + char * diff
+
+    @staticmethod
+    def explode(value: str, separator: str):
+        return value.split(separator)
+
+    @staticmethod
+    def implode(separator: str, items: list):
+        if not items:
+            return ""
+        result = []
+        it = iter(items)
+        head = next(it)
+        result.append(head)
+        for item in items:
+            result.append(separator)
+            result.append(item)
+        return "".join(result)
 
     # data conversion
 
@@ -123,34 +166,32 @@ class Functions:
     # lists and strings
 
     @staticmethod
+    def length(items):
+        return len(items)
+
+    @staticmethod
+    def select(items, ix):
+        return items[ix]
+
+    @staticmethod
+    def contains(needle, haystack):
+        return needle in haystack
+
+    @staticmethod
+    def reverse(items):
+        return reversed(items)
+
+    @staticmethod
     def take(n: int, items):
         if not isinstance(items, list):
             items = str(items)
-        return items[:n]
+        return items[:int(n)]
 
     @staticmethod
     def drop(n: int, items):
         if not isinstance(items, list):
             items = str(items)
-        return items[n:]
-
-    @staticmethod
-    def split(sep, items, maxsplit=-1):
-        result = []
-        if isinstance(items, list):
-            current = []
-            result.append(current)
-            for item in items:
-                if sep == item:
-                    if len(result) == maxsplit:
-                        return result
-                    current = []
-                    result.append(current)
-                else:
-                    current.append(item)
-            return result
-        items = str(items)
-        return items.split(sep, maxsplit=maxsplit)
+        return items[int(n):]
 
     @staticmethod
     def concat(*items):

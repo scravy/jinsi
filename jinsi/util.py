@@ -132,6 +132,7 @@ def parse_name(name) -> List[str]:
     return parts
 
 
+# TODO: Make tuple again
 class Dec(object):
     __slots__ = ['value', 'scale']
 

@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from typing import Dict, List, Any as Anything, FrozenSet
+from typing import Dict, List, Any as Anything
 
 from .environment import Environment
 from .exceptions import NoSuchVariableError, NoSuchEnvironmentVariableError
-from .util import Singleton, select, substitute, cachedmethod, empty
+from .util import Singleton, select, substitute, empty
 
 Value = Anything
 
@@ -21,9 +21,6 @@ class Node:
 
     def evaluate(self, env: Environment) -> Value:
         return None
-
-    def requires(self) -> FrozenSet[str]:
-        return frozenset()
 
 
 class Empty(Node, metaclass=Singleton):
@@ -56,15 +53,6 @@ class GetLet(Node):
             result = select(result, *self.path[1:])
         return result
 
-    @cachedmethod
-    def requires(self) -> FrozenSet[str]:
-        result = {self.path[0]}
-        try:
-            result.update(self.get_let(self.path[0]).requires())
-        except NoSuchVariableError:
-            pass
-        return frozenset(result)
-
 
 class GetDyn(Node):
     def __init__(self, parent: Node, path: List[str]):
@@ -77,10 +65,6 @@ class GetDyn(Node):
             result = select(result, *self.path[1:])
         return result
 
-    @cachedmethod
-    def requires(self) -> FrozenSet[str]:
-        return frozenset([f"${self.path[0]}"])
-
 
 class GetEnvVar(Node):
     def __init__(self, parent: Node, name: str):
@@ -89,9 +73,6 @@ class GetEnvVar(Node):
 
     def evaluate(self, env: Environment) -> Value:
         return env.get_var(self.name)
-
-    def requires(self) -> FrozenSet[str]:
-        return frozenset([self.name])
 
 
 class Let(Node):
@@ -114,23 +95,6 @@ class Let(Node):
             return super().get_let(name)
         return self.let[name]
 
-    @cachedmethod
-    def requires(self) -> FrozenSet[str]:
-        result = set(self.body.requires())
-        for node in self.env.values():
-            result.update(node.requires())
-        for name in self.env.keys():
-            try:
-                result.remove(f"${name}")
-            except KeyError:
-                pass
-        for name in self.let.keys():
-            try:
-                result.remove(name)
-            except KeyError:
-                pass
-        return frozenset(result)
-
 
 class Else(Node):
     def __init__(self, parent: Node):
@@ -151,25 +115,6 @@ class Else(Node):
             result = self.otherwise.evaluate(env)
         return result
 
-    @cachedmethod
-    def requires(self) -> FrozenSet[str]:
-        result = set(self.body.requires())
-
-        def is_env_var(name: str) -> bool:
-            return any(char.isupper() for char in name)
-
-        def is_env(name: str) -> bool:
-            return name[:1] == '$'
-
-        if not any(is_env(x) or is_env_var(x) for x in result):
-            body_result = self.body.evaluate(Environment())
-            if empty(body_result):
-                return self.otherwise.requires()
-            else:
-                return self.body.requires()
-        result.update(self.otherwise.requires())
-        return frozenset(result)
-
 
 class Object(Node):
     def __init__(self, parent: Node):
@@ -182,13 +127,6 @@ class Object(Node):
             result[key] = node.evaluate(env)
         return result
 
-    @cachedmethod
-    def requires(self) -> FrozenSet[str]:
-        result = set()
-        for node in self.children.values():
-            result.update(node.requires())
-        return frozenset(result)
-
 
 class Sequence(Node):
     def __init__(self, parent: Node):
@@ -200,13 +138,6 @@ class Sequence(Node):
         for element in self.elements:
             result.append(element.evaluate(env))
         return result
-
-    @cachedmethod
-    def requires(self) -> FrozenSet[str]:
-        result = set()
-        for node in self.elements:
-            result.update(node.requires())
-        return frozenset(result)
 
 
 class FunctionApplication(Node):
@@ -222,13 +153,6 @@ class FunctionApplication(Node):
         result = self.function(*args)
         return result
 
-    @cachedmethod
-    def requires(self) -> FrozenSet[str]:
-        result = set()
-        for node in self.args:
-            result.update(node.requires())
-        return frozenset(result)
-
 
 class Application(Node):
     def __init__(self, parent: Node, template: str):
@@ -241,18 +165,6 @@ class Application(Node):
         for key, node in self.kwargs.items():
             my_env[key] = node.evaluate(env)
         return self.get_let(self.template).evaluate(env.with_env(my_env))
-
-    @cachedmethod
-    def requires(self) -> FrozenSet[str]:
-        result = set(self.get_let(self.template).requires())
-        for node in self.kwargs.values():
-            result.update(node.requires())
-        for name in self.kwargs.keys():
-            try:
-                result.remove(f"${name}")
-            except KeyError:
-                pass
-        return frozenset(result)
 
 
 class Each(Node):
@@ -286,16 +198,6 @@ class Each(Node):
                 result = self.body.evaluate(env)
                 results.append(result)
         return results
-
-    @cachedmethod
-    def requires(self) -> FrozenSet[str]:
-        result = set(self.body.requires())
-        result.add(self.source)
-        try:
-            result.remove(self.target)
-        except KeyError:
-            pass
-        return frozenset(result)
 
 
 class When(Node):
@@ -349,14 +251,3 @@ class Format(Node):
             return self.get_let(key).evaluate(env)
 
         return substitute(self.value, subst)
-
-    @cachedmethod
-    def requires(self) -> FrozenSet[str]:
-        result = set()
-
-        def record(key: str) -> str:
-            result.add(key)
-            return ""
-
-        substitute(self.value, record)
-        return frozenset(result)
