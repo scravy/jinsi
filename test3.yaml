@@ -2,14 +2,14 @@
   users:
     ::each $ as $account:
       ::object:
-        - ::ref: $account
+        - ::get: $account
         - Properties:
             Some: props
 
   robousers:
     ::each $ as $account:
       ::object:
-        - ::ref: $account
+        - ::get: $account
         - Properties:
             Some: props
 

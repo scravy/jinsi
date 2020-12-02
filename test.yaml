@@ -2,16 +2,16 @@
   user:
     ::object:
       - ::titlecase:
-          ::ref: $user.username
+          ::get: $user.username
       - Type: AWS::IAM::User
         Properties:
           UserName:
-            ::ref: $user.username
+            ::get: $user.username
           Groups:
             - Administrators
           LoginProfile:
             Password:
-              ::ref: $user.password
+              ::get: $user.password
               ::else: default
             PasswordResetRequired: Yes
   users:
@@ -28,7 +28,7 @@ Something:
   ::each $items as $item:
     ::concat:
       - "<"
-      - ::ref: $item
+      - ::get: $item
         ::else: unknown
       - ">"
 

@@ -4,10 +4,6 @@ from jinsi.util import parse_name, Dec
 class Functions:
 
     @staticmethod
-    def oneof(value, *items):
-        return value in items
-
-    @staticmethod
     def range_inclusive(from_, to):
         return [Dec(x) for x in range(int(from_), int(to) + 1)]
 
@@ -71,6 +67,40 @@ class Functions:
         for arg in args:
             result *= Dec(arg)
         return result
+
+    # comparison
+
+    @staticmethod
+    def eq(a, b):
+        return a == b
+
+    @staticmethod
+    def neq(a, b):
+        return a != b
+
+    @staticmethod
+    def lt(a, b):
+        return a < b
+
+    @staticmethod
+    def gt(a, b):
+        return a > b
+
+    @staticmethod
+    def lte(a, b):
+        return a <= b
+
+    @staticmethod
+    def gte(a, b):
+        return a >= b
+
+    @staticmethod
+    def and_(a, b):
+        return a and b
+
+    @staticmethod
+    def or_(a, b):
+        return a or b
 
     # arithmetic
 

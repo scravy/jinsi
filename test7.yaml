@@ -1,0 +1,7 @@
+::let:
+  x:
+    a: 1
+    b: 2
+
+result:
+  ::get: x.a + x.b

@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from typing import Dict, List, Any, FrozenSet
+from typing import Dict, List, Any as Anything, FrozenSet
 
 from .environment import Environment
 from .exceptions import NoSuchVariableError, NoSuchEnvironmentVariableError
 from .util import Singleton, select, substitute, cachedmethod, empty
 
-Value = Any
+Value = Anything
 
 
 class Node:
@@ -41,7 +41,7 @@ class Constant(Node):
         super().__init__(parent)
         self.value = value
 
-    def evaluate(self, env: Dict[str, Any]) -> Value:
+    def evaluate(self, env: Dict[str, Anything]) -> Value:
         return self.value
 
 

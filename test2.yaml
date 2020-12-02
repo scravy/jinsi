@@ -5,11 +5,11 @@
   $y: quuz
 
   template:
-    - ::ref: x
-    - ::ref: y
-    - ::ref: $x
-    - ::ref: $y
-    - ::ref: $z
+    - ::get: x
+    - ::get: y
+    - ::get: $x
+    - ::get: $y
+    - ::get: $z
 
 formatted:
   ::format: hello <<x>> woohoo <<y>> yeah <<$x>> and <<$y>>
@@ -20,25 +20,25 @@ cool:
     woohoo: <<x>>/<<y>>
 
 list:
-  - ::ref: x
-  - ::ref: y
-  - ::ref: $x
-  - ::ref: $y
-  - ::ref: SHELL
-  - ::ref: HOSTNAME
+  - ::get: x
+  - ::get: y
+  - ::get: $x
+  - ::get: $y
+  - ::get: SHELL
+  - ::get: HOSTNAME
     ::else: unknown
 
 x:
   ::let:
     something:
-      ::ref: $m
+      ::get: $m
   y:
-    - ::ref: something
+    - ::get: something
       ::let:
         $m: 3
       ::else:
-        ::ref: $z
-    - ::ref: $q
+        ::get: $z
+    - ::get: $q
       ::else: All okay.
 
 applied:

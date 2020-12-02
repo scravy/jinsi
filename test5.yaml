@@ -1,42 +1,22 @@
 ::let:
   fib:
     ::when:
-      ::oneof:
-        - ::ref: $n
-        - 0
-        - 1
+      ::get: $n == 0 or $n == 1
     ::then:
-      ::ref: $n
+      ::get: $n
     ::else:
-      ::let:
-        $n1:
-          ::sub:
-            - ::ref: $n
-            - 1
-        $n2:
-          ::sub:
-            - ::ref: $n
-            - 2
       ::add:
         - ::call fib:
             $n:
-              ::ref: $n1
+              ::get: $n - 1
         - ::call fib:
             $n:
-              ::ref: $n2
+              ::get: $n - 2
   fibs:
-    - 0
-    - 1
-    - 2
-    - 3
-    - 4
-    - 5
-    - 6
-    - 7
-    - 8
-    - 9
+    ::range_exclusive:
+      - 0
+      - 10
 
 result:
   ::each fibs as $n:
     ::call: fib
-

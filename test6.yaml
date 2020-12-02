@@ -1,0 +1,17 @@
+result:
+  ::any:
+    - ::when: false
+      ::then: 1
+    - ::when: false
+      ::then: 2
+    - 7
+
+result2:
+  ::any:
+    - []
+    - {}
+    - false
+    - null
+    - 1
+    - 2
+    - 3

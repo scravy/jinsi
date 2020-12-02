@@ -5,16 +5,16 @@ docs:
   - ::snakecase: <<name>>
   - ::uppercase:
       ::snakecase:
-        ::ref: name
+        ::get: name
   - ::uppercase:
       ::kebabcase:
-        ::ref: name
+        ::get: name
   - ::kebabcase:
-      ::ref: name
+      ::get: name
   - ::titlecase:
-      ::ref: name
+      ::get: name
   - ::camelcase:
-      ::ref: name
+      ::get: name
   - ::titlecase: XmlRPCProcessor_23
   - ::div:
       - 1

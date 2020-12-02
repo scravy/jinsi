@@ -14,16 +14,16 @@ doc:
   xs:
     ::split:
       - 2
-      - ::ref: xs
+      - ::get: xs
   ys:
-    ::ref: xs
+    ::get: xs
   zs:
     ::let:
       x:
         ::split:
           - " "
           - hello world out there
-    ::ref: x
+    ::get: x
   qs:
     ::let:
       xs:
@@ -31,5 +31,5 @@ doc:
           - " "
           - hello out there
     ::each xs as x:
-      ::ref: x
+      ::get: x
 

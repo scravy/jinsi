@@ -7,6 +7,7 @@ from inspect import getattr_static
 import yaml
 
 from .exceptions import MalformedEachError, MalformedNameError, NoParseError, NoSuchFunctionError
+from .expressions import parse_expression
 from .functions import Functions
 from .nodes import *
 from .util import merge, Dec
@@ -24,7 +25,7 @@ class Parser:
         if not re.match(self.name_regex, name):
             raise MalformedNameError(name=name, expected=self.name_regex)
 
-    def parse_node(self, obj: Any, parent: Node) -> Node:
+    def parse_node(self, obj: Anything, parent: Node) -> Node:
         if isinstance(obj, list):
             return self.parse_sequence(obj, parent)
         if isinstance(obj, (type(None), bool, int, float, str, Dec, date, datetime)):
@@ -57,17 +58,20 @@ class Parser:
             return self.parse_let(obj, parent)
         nodes = []
         remaining = {}
-        # if ::when or ::then are here then NoParse - maybe?
-        if '::ref' in obj:
-            ref = obj['::ref']
-            if isinstance(ref, str) and re.match(self.env_var_regex, ref):
-                nodes.append(self.parse_get_env_var(obj, parent))
-            elif isinstance(ref, str) and ref[:1] == '$' or isinstance(ref, list) and ref[0][:1] == '$':
-                nodes.append(self.parse_get_dyn(obj, parent))
-            else:
-                nodes.append(self.parse_get_let(obj, parent))
+        # TODO: decide - if ::when or ::then are here then NoParse - maybe?
+        # TODO: expr -> get
+        # if '::ref' in obj:
+        #     ref = obj['::ref']
+        #     if isinstance(ref, str) and re.match(self.env_var_regex, ref):
+        #         nodes.append(self.parse_get_env_var(obj, parent))
+        #     elif isinstance(ref, str) and ref[:1] == '$' or isinstance(ref, list) and ref[0][:1] == '$':
+        #         nodes.append(self.parse_get_dyn(obj, parent))
+        #     else:
+        #         nodes.append(self.parse_get_let(obj, parent))
         for key, value in obj.items():
-            if key[:8] == "::format":
+            if '::get' in obj:
+                nodes.append(parse_expression(obj['::get'], parent))
+            elif key[:8] == "::format":
                 nodes.append(self.parse_format(value, parent))
             elif key[:6] == "::call":
                 nodes.append(self.parse_application(key, value, parent))
@@ -116,7 +120,7 @@ class Parser:
         path = obj['::ref']
         return GetEnvVar(parent, path)
 
-    def parse_let(self, obj: Any, parent: Node) -> Node:
+    def parse_let(self, obj: Anything, parent: Node) -> Node:
         node = Let(parent)
         remainder = {}
         for key, value in obj.items():
@@ -158,7 +162,7 @@ class Parser:
             node.nodes.append(self.parse_node(item, node))
         return node
 
-    def parse_else(self, obj: Any, parent: Node) -> Node:
+    def parse_else(self, obj: Anything, parent: Node) -> Node:
         node = Else(parent)
         remainder = {}
         for key, value in obj.items():

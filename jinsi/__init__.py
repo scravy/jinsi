@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import json
 from typing import Union
 
 import yaml
 
 from .environment import Environment
+from .jsonutil import dumpjson
 from .nodes import Node, Empty, Value, Constant
 from .parser import Parser
 from .util import Singleton, select, substitute, merge, Dec
@@ -23,13 +25,26 @@ def evaluate(doc: Union[Node, str, dict, list], **env) -> Value:
     return doc.evaluate(Environment(**env))
 
 
-def render(doc: Union[Node, str, dict, list], **env) -> str:
-    return yaml.dump(evaluate(doc, **env), Dumper=Dumper)
+def render_yaml(doc: Union[Node, str, dict, list], **env) -> str:
+    result = evaluate(doc, **env)
+    return yaml.dump(result, Dumper=Dumper)
 
 
-def render_file(file: str, **env) -> str:
+def render_file_yaml(file: str, **env) -> str:
     node = load_file(file)
-    return yaml.dump(evaluate(node, **env), Dumper=Dumper)
+    result = evaluate(node, **env)
+    return yaml.dump(result, Dumper=Dumper)
+
+
+def render_json(doc: Union[Node, str, dict, list], **env) -> str:
+    result = evaluate(doc, **env)
+    return dumpjson(result, indent=2)
+
+
+def render_file_json(file: str, **env) -> str:
+    node = load_file(file)
+    result = evaluate(node, **env)
+    return dumpjson(result, indent=2)
 
 
 def load_yaml(yaml_str: str) -> Node:

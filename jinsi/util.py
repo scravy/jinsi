@@ -132,18 +132,21 @@ def parse_name(name) -> List[str]:
     return parts
 
 
-class Dec(tuple):
-    __slots__ = []
+class Dec(object):
+    __slots__ = ['value', 'scale']
 
-    def __new__(cls, value: Union[bool, int, float, str, Dec], scale: int = None) -> Dec:
+    def __init__(self, value: Union[bool, int, float, str, Dec], scale: int = None):
         if scale is not None:
             if scale < 0:
                 raise ValueError(scale)
-            if not isinstance(value, int):
+            if not isinstance(value, (bool, int, float, str)):
                 raise TypeError(value)
-        elif isinstance(value, Dec):
-            return value
-        elif isinstance(value, str):
+        if isinstance(value, Dec):
+            scale = value.scale
+            value = value.value
+        elif isinstance(value, float):
+            value = str(value)
+        if isinstance(value, str):
             if re.match("^-?[0-9]+$", value):
                 value = int(value)
                 scale = 0
@@ -155,26 +158,20 @@ class Dec(tuple):
                 raise ValueError(value)
         elif isinstance(value, int):
             scale = 0
-        elif isinstance(value, float):
-            return Dec(str(value))
         elif isinstance(value, bool):
+            scale = 0
             if value:
-                return Dec(1)
+                value = 1
             else:
-                return Dec(0)
+                value = 0
         while scale > 0 and value % 10 == 0:
             scale -= 1
             value //= 10
-        # noinspection PyTypeChecker
-        return tuple.__new__(cls, (value, scale))
+        object.__setattr__(self, 'scale', scale)
+        object.__setattr__(self, 'value', value)
 
-    @property
-    def value(self) -> int:
-        return tuple.__getitem__(self, 0)
-
-    @property
-    def scale(self) -> int:
-        return tuple.__getitem__(self, 1)
+    def __setattr__(self, key, value):
+        raise TypeError(f"`{key}' can not be set – {type(self)} is immutable.")
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -196,9 +193,6 @@ class Dec(tuple):
 
     def __bool__(self) -> bool:
         return self.value != 0
-
-    def __getitem__(self, item):
-        raise TypeError
 
     @staticmethod
     def _scaled(this, that,
