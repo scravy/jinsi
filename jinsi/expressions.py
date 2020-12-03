@@ -2,7 +2,7 @@ import re
 
 from .functions import Functions
 from .nodes import *
-from .util import Dec
+from .dec import Dec
 
 
 def peek(stack):

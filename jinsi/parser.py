@@ -10,7 +10,8 @@ from .exceptions import MalformedEachError, MalformedNameError, NoParseError, No
 from .expressions import parse_expression
 from .functions import Functions
 from .nodes import *
-from .util import merge, Dec
+from .util import merge
+from .dec import Dec
 
 
 # noinspection PyMethodMayBeStatic

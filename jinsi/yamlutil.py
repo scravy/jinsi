@@ -1,6 +1,6 @@
 import re
-import yaml
 
+import yaml
 import yaml.composer
 import yaml.constructor
 import yaml.parser
@@ -9,8 +9,7 @@ import yaml.resolver
 import yaml.resolver
 import yaml.scanner
 
-
-from .util import Dec
+from .dec import Dec
 
 
 class Resolver(yaml.resolver.BaseResolver):

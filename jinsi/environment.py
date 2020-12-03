@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import os
-from typing import Dict, Any
+from typing import Dict, Any as Anything
 
 from .exceptions import NoSuchEnvironmentVariableError
 
-Value = Any
+Value = Anything
 
 
 class Environment:

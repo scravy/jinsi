@@ -1,7 +1,7 @@
 import json
 from typing import Iterator, Any, Callable, Union
 
-from .util import Dec
+from .dec import Dec
 
 INFINITY = float('inf')
 

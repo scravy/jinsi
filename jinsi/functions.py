@@ -1,4 +1,5 @@
-from jinsi.util import parse_name, Dec
+from .dec import Dec
+from .util import parse_name
 
 
 class Functions:
