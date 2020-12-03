@@ -3,4 +3,4 @@
 from jinsi import *
 
 if __name__ == '__main__':
-    print(render_file_yaml("test9.yaml"))
+    print(render_file_yaml("test7.yaml"))

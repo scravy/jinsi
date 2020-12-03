@@ -5,3 +5,29 @@
 
 result:
   ::get: x.a + x.b
+
+items:
+  ::sorted:
+    - name.first
+    - - name:
+          first: Bob
+          last: Doe
+        id: 3
+      - name:
+          first: Alice
+          last: Doe
+        id: 10
+
+tests:
+  - ::starts_with:
+      - hello
+      - hello world
+  - ::ends_with:
+      - world
+      - hello world
+  - ::ends_with:
+      - hello
+      - hello world
+  - ::starts_with:
+      - world
+      - hello world

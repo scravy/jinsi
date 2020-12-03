@@ -1,5 +1,7 @@
+from typing import Union, List
+
 from .dec import Dec
-from .util import parse_name
+from .util import parse_name, select, empty
 
 
 class Functions:
@@ -66,11 +68,11 @@ class Functions:
         return value + char * diff
 
     @staticmethod
-    def explode(value: str, separator: str):
+    def explode(separator: str, value: str):
         return value.split(separator)
 
     @staticmethod
-    def implode(separator: str, items: list):
+    def implode(separator: str, items: List):
         if not items:
             return ""
         result = []
@@ -81,6 +83,38 @@ class Functions:
             result.append(separator)
             result.append(item)
         return "".join(result)
+
+    # value tests
+
+    @staticmethod
+    def is_empty(value):
+        return empty(value)
+
+    # type tests
+
+    @staticmethod
+    def is_null(value):
+        return value is None
+
+    @staticmethod
+    def is_number(value):
+        return isinstance(value, (Dec, int, float))
+
+    @staticmethod
+    def is_string(value):
+        return isinstance(value, str)
+
+    @staticmethod
+    def is_boolean(value):
+        return isinstance(value, bool)
+
+    @staticmethod
+    def is_list(value):
+        return isinstance(value, list)
+
+    @staticmethod
+    def is_object(value):
+        return isinstance(value, dict)
 
     # data conversion
 
@@ -95,6 +129,12 @@ class Functions:
     @staticmethod
     def boolean(value):
         return bool(value)
+
+    @staticmethod
+    def list(value):
+        if isinstance(value, list):
+            return value
+        return [value]
 
     # aggregation
 
@@ -179,8 +219,31 @@ class Functions:
         return needle in haystack
 
     @staticmethod
+    def starts_with(prefix, value: Union[str, List]):
+        for ix in range(0, len(prefix)):
+            if prefix[ix] != value[ix]:
+                return False
+        return True
+
+    @staticmethod
+    def ends_with(prefix, value: Union[str, List]):
+        for ix in range(1, len(prefix)+1):
+            if prefix[-ix] != value[-ix]:
+                return False
+        return True
+
+    @staticmethod
     def reverse(items):
         return reversed(items)
+
+    @staticmethod
+    def sorted(key: str, items: list) -> list:
+        path = key.split(".")
+
+        def key(item):
+            return select(item, *path)
+
+        return sorted(items, key=key)
 
     @staticmethod
     def take(n: int, items):

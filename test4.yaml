@@ -17,15 +17,15 @@ doc:
     ::let:
       x:
         ::explode:
-          - hello world out there
           - " "
+          - hello world out there
     ::get: x
   qs:
     ::let:
       xs:
         ::explode:
-          - hello out there
           - " "
+          - hello out there
     ::each xs as x:
       ::get: x
 
