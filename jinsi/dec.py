@@ -59,7 +59,7 @@ class Dec(tuple):
         raise TypeError
 
     def __repr__(self) -> str:
-        return self.__str__()
+        return f"Dec({repr(str(self))})"
 
     def __str__(self) -> str:
         if self.scale > 0:

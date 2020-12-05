@@ -1,5 +1,5 @@
 import json
-from typing import Iterator, Any, Callable, Union
+from typing import Iterator, Any, Union
 
 from .dec import Dec
 
@@ -24,7 +24,7 @@ class Encoder(json.JSONEncoder):
                 o,
                 allow_nan=self.allow_nan,
                 # check for specials. this type of test is platform-specific, so do tests which don't depend internals.
-                _repr: Callable[[float], str] = float.__repr__,
+                _repr=repr,
                 _inf=INFINITY,
                 _neginf=-INFINITY
         ):

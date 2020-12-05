@@ -1,25 +1,147 @@
 from __future__ import annotations
 
 import functools
+import hashlib
 import re
-from typing import Callable, List
+import struct
+from typing import Callable, List, Optional
 
 from jinsi.exceptions import NoMergePossible
 
 
-def cachedmethod(func):
+def hash_complex(
+        value, *, algo="sha256",
+        _prefix: Optional[bytes] = None,
+        _none=bytes([3]),
+        _true=bytes([5]),
+        _false=bytes([7]),
+        _zero=bytes([11]),
+        _int_neg=bytes([13]),
+        _int_pos=bytes([17]),
+        _double=bytes([19]),
+        _string=bytes([23]),
+        _seq=bytes([29]),
+        _map=bytes([31]),
+        _set=bytes([37]),
+        _arbitrary=bytes([41])
+) -> bytes:
+    if isinstance(value, str):
+        md = hashlib.new(algo)
+        md.update(_string)
+        md.update(value.encode('utf8'))
+        return md.digest()
+    if isinstance(value, bool):
+        md = hashlib.new(algo)
+        if value:
+            md.update(_true)
+        else:
+            md.update(_false)
+        return md.digest()
+    if isinstance(value, int):
+        md = hashlib.new(algo)
+        if value == 0:
+            md.update(_zero)
+        elif value < 0:
+            value *= -1
+            md.update(_int_neg)
+        else:
+            md.update(_int_pos)
+        while value > 0:
+            md.update(bytes([value % 256]))
+            value //= 256
+        return md.digest()
+    if isinstance(value, float):
+        md = hashlib.new(algo)
+        md.update(_double)
+        md.update(struct.pack("d", value))
+        return md.digest()
+    if isinstance(value, (list, tuple)):
+        md = hashlib.new(algo)
+        md.update(_seq)
+        for item in value:
+            md.update(hash_complex(item, algo=algo))
+        return md.digest()
+    if isinstance(value, (set, frozenset)):
+        md = hashlib.new(algo)
+        md.update(_set)
+        hashes = []
+        for item in value:
+            hashes.append(hash_complex(item, algo=algo))
+        hashes.sort()
+        for h in hashes:
+            md.update(h)
+        return md.digest()
+    if isinstance(value, dict):
+        md = hashlib.new(algo)
+        if _prefix is None:
+            md.update(_map)
+        else:
+            md.update(_prefix)
+        _seq = []
+        for key, value in value.items():
+            _seq.append((hash_complex(key, algo=algo), hash_complex(value, algo=algo)))
+        _seq.sort()
+        for key, value in _seq:
+            md.update(key)
+            md.update(value)
+        return md.digest()
+    if isinstance(value, (bytes, bytearray)):
+        md = hashlib.new(algo)
+        md.update(_arbitrary)
+        md.update(value)
+        return md.digest()
+    if value is None:
+        md = hashlib.new(algo)
+        md.update(_none)
+        return md.digest()
+    if hasattr(value, '__class__'):
+        prefix = bytearray()
+        prefix.extend(_arbitrary)
+        prefix.extend(hash_complex(value.__class__.__module__, algo=algo))
+        prefix.extend(hash_complex(value.__class__.__name__, algo=algo))
+        return hash_complex(value.__dict__, algo=algo, _prefix=prefix)
+    raise ValueError(value)
+
+
+def cached_function(func):
+    _empty_args_hash = hash_complex(((), {}), algo='sha1').hex()
+    _cache = {}
+
     @functools.wraps(func)
-    def wrapper(self):
+    def wrapper(*args, **kwargs):
+        if not args and not kwargs:
+            args_hash = _empty_args_hash
+        else:
+            args_hash = hash_complex((args, kwargs), algo='sha1').hex()
+        try:
+            result = _cache[args_hash]
+        except KeyError:
+            result = func(*args, **kwargs)
+            _cache[args_hash] = result
+        return result
+
+    return wrapper
+
+
+def cached_method(func):
+    _empty_args_hash = hash_complex(((), {}), algo='sha1').hex()
+
+    @functools.wraps(func)
+    def wrapper(self, *args, **kwargs):
         try:
             cache = self.__method_cache__
         except AttributeError:
             self.__method_cache__ = {}
             cache = self.__method_cache__
-        name = func.__name__
+        if not args and not kwargs:
+            args_hash = _empty_args_hash
+        else:
+            args_hash = hash_complex((args, kwargs), algo='sha1').hex()
+        name = f"{func.__name__}:{args_hash}"
         try:
             result = cache[name]
         except KeyError:
-            result = func(self)
+            result = func(self, *args, **kwargs)
             cache[name] = result
         return result
 
@@ -49,7 +171,7 @@ def substitute(thing, callback: Callable[[str], str]):
     if isinstance(thing, (type(None), bool, int, float)):
         return thing
     if isinstance(thing, str):
-        fs = re.split("<<(\\$?[a-zA-Z0-9-_]+)>>", thing)
+        fs = re.split(r"<<(\$?[a-zA-Z0-9-_]+)>>", thing)
         result = []
         is_even = True
         for f in fs:
@@ -131,7 +253,7 @@ def parse_name(name) -> List[str]:
     return parts
 
 
-def empty(result) -> bool:
-    if isinstance(result, (bool, list, dict, str)):
-        return not result
-    return result is None
+def empty(value) -> bool:
+    if isinstance(value, (bool, list, dict, str)):
+        return not value
+    return value is None

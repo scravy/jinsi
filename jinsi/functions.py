@@ -1,3 +1,4 @@
+import hashlib
 from typing import Union, List
 
 from .dec import Dec
@@ -83,6 +84,36 @@ class Functions:
             result.append(separator)
             result.append(item)
         return "".join(result)
+
+    # hashes
+
+    @staticmethod
+    def md5(value):
+        return hashlib.new("md5", value).hexdigest()
+
+    @staticmethod
+    def sha256(value):
+        return hashlib.new("sha256", value).hexdigest()
+
+    @staticmethod
+    def sha512(value):
+        return hashlib.new("sha512", value).hexdigest()
+
+    @staticmethod
+    def sha3_256(value):
+        return hashlib.new("sha3_256", value).hexdigest()
+
+    @staticmethod
+    def sha3_512(value):
+        return hashlib.new("sha3_512", value).hexdigest()
+
+    @staticmethod
+    def shake_128(value):
+        return hashlib.new("shake_128", value).hexdigest()
+
+    @staticmethod
+    def shake_256(value):
+        return hashlib.new("shake_256", value).hexdigest()
 
     # value tests
 
