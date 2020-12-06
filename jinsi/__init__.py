@@ -8,7 +8,6 @@ from .environment import Environment
 from .jsonutil import dumpjson
 from .nodes import Node, Empty, Value, Constant
 from .parser import Parser
-from .util import Singleton, select, substitute, merge
 from .yamlutil import Loader, Dumper
 
 
