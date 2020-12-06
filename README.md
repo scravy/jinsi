@@ -31,7 +31,6 @@ print(render_file_yaml("file.yaml"))
 print(render_file_json("file.yaml"))
 # -> prints minified JSON
 
-# print(render_file_yaml("test.yaml"))
 print(render_yaml("""
     a: 3
     b:
