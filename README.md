@@ -2,21 +2,21 @@
 
 ## Usage via CLI
 
-```
-python3 -m jinsi - # read from stdin
-```
-
-```
-python3 -m jinsi -j - # read from stdin, render as json
+```shell script
+python3 -m jinsi -  # read from stdin
 ```
 
+```shell script
+python3 -m jinsi -j -  # read from stdin, render as json
 ```
+
+```shell script
 python3 -m jinsi file1.yaml file2.yaml
 ```
 
 ## Usage via API
 
-```
+```python
 from jinsi import render_json, render_yaml, render_file_json, render_file_yaml
 
 print(render_file_yaml("file.yaml"))
@@ -47,7 +47,7 @@ print(render_json("""
 
 YAML input:
 
-```
+```yaml
 ::let:
   user:
     ::object:
@@ -80,7 +80,7 @@ Resources:
 
 Rendered output:
 
-```
+```yaml
 Resources:
   Jack:
     Properties:
@@ -119,13 +119,13 @@ would blow up and values upto 50 could not be computed. Since
 Jinsi is purely functional, functions are mappings and can be
 cached. This is why the computation returns quickly (at all).
 
-```
+```shell script
 python3 -m jinsi max=50 -
 ```
 
 YAML input:
 
-```
+```yaml
 ::let:
   fib:
     ::when:
@@ -153,7 +153,7 @@ result:
 
 Rendered output:
 
-```
+```yaml
 result:
 - 0
 - 1
