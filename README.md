@@ -1,5 +1,11 @@
 # JSON/YAML homoiconic templating language
 
+Install
+
+```shell script
+python3 -m pip install jinsi
+```
+
 ## Usage via CLI
 
 ```shell script
