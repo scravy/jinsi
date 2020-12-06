@@ -19,19 +19,6 @@
       ::each $ as $user:
         ::call user:
 
-Something:
-  ::let:
-    $items:
-      - one
-      - null
-      - three
-  ::each $items as $item:
-    ::concat:
-      - "<"
-      - ::get: $item
-        ::else: unknown
-      - ">"
-
 Resources:
   ::call users:
     - username: jim

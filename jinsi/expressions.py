@@ -1,8 +1,9 @@
 import re
 
+from dezimal import Dec
+
 from .functions import Functions
 from .nodes import *
-from .dec import Dec
 
 
 def peek(stack):

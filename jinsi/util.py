@@ -23,7 +23,8 @@ def hash_complex(
         _seq=bytes([29]),
         _map=bytes([31]),
         _set=bytes([37]),
-        _arbitrary=bytes([41])
+        _arbitrary=bytes([41]),
+        _custom=bytes([43]),
 ) -> bytes:
     if isinstance(value, str):
         md = hashlib.new(algo)
@@ -96,7 +97,7 @@ def hash_complex(
         return md.digest()
     if hasattr(value, '__class__'):
         prefix = bytearray()
-        prefix.extend(_arbitrary)
+        prefix.extend(_custom)
         prefix.extend(hash_complex(value.__class__.__module__, algo=algo))
         prefix.extend(hash_complex(value.__class__.__name__, algo=algo))
         return hash_complex(value.__dict__, algo=algo, _prefix=prefix)

@@ -1,7 +1,8 @@
 import hashlib
 from typing import Union, List
 
-from .dec import Dec
+from dezimal import Dec
+
 from .util import parse_name, select, empty
 
 
@@ -258,7 +259,7 @@ class Functions:
 
     @staticmethod
     def ends_with(prefix, value: Union[str, List]):
-        for ix in range(1, len(prefix)+1):
+        for ix in range(1, len(prefix) + 1):
             if prefix[-ix] != value[-ix]:
                 return False
         return True

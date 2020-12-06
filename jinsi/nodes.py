@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-from typing import Dict, List, Any as Anything
+from typing import Dict, List, Any as Value
 
 from .environment import Environment
 from .exceptions import NoSuchVariableError, NoSuchEnvironmentVariableError
-from .util import Singleton, select, substitute, empty
-
-Value = Anything
+from .util import Singleton, select, substitute, empty, cached_method
 
 
 class Node:
@@ -38,7 +36,7 @@ class Constant(Node):
         super().__init__(parent)
         self.value = value
 
-    def evaluate(self, env: Dict[str, Anything]) -> Value:
+    def evaluate(self, env: Dict[str, Value]) -> Value:
         return self.value
 
 
@@ -160,6 +158,7 @@ class Application(Node):
         self.template = template
         self.kwargs: Dict[str, Node] = {}
 
+    @cached_method
     def evaluate(self, env: Environment) -> Value:
         my_env: Dict[str, Value] = {}
         for key, node in self.kwargs.items():

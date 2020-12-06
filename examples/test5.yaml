@@ -15,7 +15,8 @@
   fibs:
     ::range_exclusive:
       - 0
-      - 10
+      - ::get: $max
+        ::else: 10
 
 result:
   ::each fibs as $n:

@@ -4,7 +4,6 @@ from typing import Union
 
 import yaml
 
-from .dec import Dec
 from .environment import Environment
 from .jsonutil import dumpjson
 from .nodes import Node, Empty, Value, Constant

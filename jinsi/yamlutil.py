@@ -8,8 +8,7 @@ import yaml.reader
 import yaml.resolver
 import yaml.resolver
 import yaml.scanner
-
-from .dec import Dec
+from dezimal import Dec
 
 
 class Resolver(yaml.resolver.BaseResolver):
@@ -18,15 +17,8 @@ class Resolver(yaml.resolver.BaseResolver):
 
 Resolver.add_implicit_resolver(
     '!dec',
-    re.compile(r'''^(?:
-        [-+]?(?:[0-9][0-9_]*)\.[0-9_]*(?:[eE][-+][0-9]+)?
-        |[-+]?[0-9]+
-        |\.[0-9_]+(?:[eE][-+][0-9]+)?
-        |[-+]?[0-9][0-9_]*(?::[0-9]?[0-9])+\.[0-9_]*
-        |[-+]?\.(?:inf|Inf|INF)
-        |\.(?:nan|NaN|NAN)
-    )$''', re.VERBOSE),
-    list('-+0123456789.')
+    re.compile(r'^[-+]?(?:[0-9]+)(?:\.[0-9]+)?(?:[eE][-+][0-9]+)?$'),
+    list('-+0123456789')
 )
 
 for ch, vs in yaml.resolver.Resolver.yaml_implicit_resolvers.items():

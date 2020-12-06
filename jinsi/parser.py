@@ -5,13 +5,13 @@ from datetime import date, datetime
 from inspect import getattr_static
 
 import yaml
+from dezimal import Dec
 
 from .exceptions import MalformedEachError, MalformedNameError, NoParseError, NoSuchFunctionError
 from .expressions import parse_expression
 from .functions import Functions
 from .nodes import *
 from .util import merge
-from .dec import Dec
 
 
 # noinspection PyMethodMayBeStatic
@@ -25,7 +25,7 @@ class Parser:
         if not re.match(self.name_regex, name):
             raise MalformedNameError(name=name, expected=self.name_regex)
 
-    def parse_node(self, obj: Anything, parent: Node) -> Node:
+    def parse_node(self, obj: Value, parent: Node) -> Node:
         if isinstance(obj, list):
             return self.parse_sequence(obj, parent)
         if isinstance(obj, (type(None), bool, int, float, str, Dec, date, datetime)):
@@ -59,14 +59,6 @@ class Parser:
         nodes = []
         remaining = {}
         # TODO: decide - if ::when or ::then are here then NoParse - maybe?
-        # if '::ref' in obj:
-        #     ref = obj['::ref']
-        #     if isinstance(ref, str) and re.match(self.env_var_regex, ref):
-        #         nodes.append(self.parse_get_env_var(obj, parent))
-        #     elif isinstance(ref, str) and ref[:1] == '$' or isinstance(ref, list) and ref[0][:1] == '$':
-        #         nodes.append(self.parse_get_dyn(obj, parent))
-        #     else:
-        #         nodes.append(self.parse_get_let(obj, parent))
         for key, value in obj.items():
             if '::get' in obj:
                 nodes.append(parse_expression(obj['::get'], parent))
@@ -77,7 +69,7 @@ class Parser:
             elif key[:6] == "::each":
                 nodes.append(self.parse_each(key, value, parent))
             elif len(key) > 2 and key[:2] == "::":
-                if key not in {"::ref", "::call", "::each", "::format"}:
+                if key not in {"::get", "::call", "::each", "::format"}:
                     nodes.append(self.parse_function_application(key, value, parent))
             else:
                 remaining[key] = value
@@ -96,30 +88,7 @@ class Parser:
     def parse_constant(self, obj, parent: Node) -> Node:
         return Constant(parent, obj)
 
-    def parse_get_let(self, obj, parent: Node) -> Node:
-        path = obj['::ref']
-        if isinstance(path, str):
-            path = path.split(".")
-        if not isinstance(path, list):
-            raise NoParseError()
-        self.check_name(path[0])
-        return GetLet(parent, path)
-
-    def parse_get_dyn(self, obj, parent: Node) -> Node:
-        path = obj['::ref']
-        if isinstance(path, str):
-            path = path.split(".")
-        if not isinstance(path, list):
-            raise NoParseError()
-        path[0] = path[0][1:]  # remove leading dollar sign
-        self.check_name(path[0])
-        return GetDyn(parent, path)
-
-    def parse_get_env_var(self, obj, parent: Node) -> Node:
-        path = obj['::ref']
-        return GetEnvVar(parent, path)
-
-    def parse_let(self, obj: Anything, parent: Node) -> Node:
+    def parse_let(self, obj: Value, parent: Node) -> Node:
         node = Let(parent)
         remainder = {}
         for key, value in obj.items():
@@ -161,7 +130,7 @@ class Parser:
             node.nodes.append(self.parse_node(item, node))
         return node
 
-    def parse_else(self, obj: Anything, parent: Node) -> Node:
+    def parse_else(self, obj: Value, parent: Node) -> Node:
         node = Else(parent)
         remainder = {}
         for key, value in obj.items():

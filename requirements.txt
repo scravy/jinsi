@@ -1,1 +1,2 @@
 pyyaml~=5.3.1
+dezimal~=0.1.0
