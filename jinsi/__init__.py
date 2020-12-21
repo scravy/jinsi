@@ -8,7 +8,7 @@ from .environment import Environment
 from .jsonutil import dumpjson
 from .nodes import Node, Empty, Value, Constant
 from .parser import Parser
-from .yamlutil import Loader, Dumper
+from .yamlutil import Loader, Dumper, dumpyaml
 
 
 def parse(doc: Union[str, dict, list]) -> Node:
@@ -25,24 +25,24 @@ def evaluate(doc: Union[Node, str, dict, list], **env) -> Value:
 
 def render_yaml(doc: Union[Node, str, dict, list], **env) -> str:
     result = evaluate(doc, **env)
-    return yaml.dump(result, Dumper=Dumper)
+    return dumpyaml(result)
 
 
 def render_file_yaml(file: str, **env) -> str:
     node = load_file(file)
     result = evaluate(node, **env)
-    return yaml.dump(result, Dumper=Dumper)
+    return dumpyaml(result)
 
 
 def render_json(doc: Union[Node, str, dict, list], **env) -> str:
     result = evaluate(doc, **env)
-    return dumpjson(result, indent=2)
+    return dumpjson(result)
 
 
 def render_file_json(file: str, **env) -> str:
     node = load_file(file)
     result = evaluate(node, **env)
-    return dumpjson(result, indent=2)
+    return dumpjson(result)
 
 
 def load_yaml(yaml_str: str) -> Node:

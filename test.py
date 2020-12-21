@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 
-import unittest
-
-
-class TestJinsi(unittest.TestCase):
-    pass
-
+import jinsi
 
 if __name__ == '__main__':
-    unittest.main()
+    print(jinsi.render_yaml("""
+        ::let:
+            x: seven
+        ::format: <<x>> <<x>> <<x>>
+    """))

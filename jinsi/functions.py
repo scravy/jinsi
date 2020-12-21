@@ -1,9 +1,8 @@
 import hashlib
-from typing import Union, List
 
 from dezimal import Dec
 
-from .util import parse_name, select, empty
+from .util import parse_name, empty
 
 
 class Functions:
@@ -56,25 +55,33 @@ class Functions:
         return str(value).rstrip(chars)
 
     @staticmethod
-    def pad_left(value: str, char: str, total_length: int):
-        diff = total_length - len(value)
+    def pad_left(value, char, total_length):
+        if not isinstance(value, str):
+            value: str = str(value)
+        if not isinstance(char, str):
+            char: str = str(char)
+        diff: int = int(total_length) - len(value)
         if diff <= 0:
             return value
         return char * diff + value
 
     @staticmethod
-    def pad_right(value: str, char: str, total_length: int):
-        diff = total_length - len(value)
+    def pad_right(value, char, total_length):
+        if not isinstance(value, str):
+            value: str = str(value)
+        if not isinstance(char, str):
+            char: str = str(char)
+        diff: int = int(total_length) - len(value)
         if diff <= 0:
             return value
         return value + char * diff
 
     @staticmethod
-    def explode(separator: str, value: str):
+    def explode(separator, value):
         return value.split(separator)
 
     @staticmethod
-    def implode(separator: str, items: List):
+    def implode(separator, items):
         if not items:
             return ""
         result = []
@@ -93,6 +100,10 @@ class Functions:
         return hashlib.new("md5", value).hexdigest()
 
     @staticmethod
+    def sha1(value):
+        return hashlib.new("sha1", value).hexdigest()
+
+    @staticmethod
     def sha256(value):
         return hashlib.new("sha256", value).hexdigest()
 
@@ -107,14 +118,6 @@ class Functions:
     @staticmethod
     def sha3_512(value):
         return hashlib.new("sha3_512", value).hexdigest()
-
-    @staticmethod
-    def shake_128(value):
-        return hashlib.new("shake_128", value).hexdigest()
-
-    @staticmethod
-    def shake_256(value):
-        return hashlib.new("shake_256", value).hexdigest()
 
     # value tests
 
@@ -251,14 +254,14 @@ class Functions:
         return needle in haystack
 
     @staticmethod
-    def starts_with(prefix, value: Union[str, List]):
+    def starts_with(prefix, value):
         for ix in range(0, len(prefix)):
             if prefix[ix] != value[ix]:
                 return False
         return True
 
     @staticmethod
-    def ends_with(prefix, value: Union[str, List]):
+    def ends_with(prefix, value):
         for ix in range(1, len(prefix) + 1):
             if prefix[-ix] != value[-ix]:
                 return False
@@ -269,22 +272,17 @@ class Functions:
         return reversed(items)
 
     @staticmethod
-    def sorted(key: str, items: list) -> list:
-        path = key.split(".")
-
-        def key(item):
-            return select(item, *path)
-
-        return sorted(items, key=key)
+    def sort(items):
+        return sorted(items)
 
     @staticmethod
-    def take(n: int, items):
+    def take(n, items):
         if not isinstance(items, list):
             items = str(items)
         return items[:int(n)]
 
     @staticmethod
-    def drop(n: int, items):
+    def drop(n, items):
         if not isinstance(items, list):
             items = str(items)
         return items[int(n):]

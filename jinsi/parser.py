@@ -91,6 +91,8 @@ class Parser:
     def parse_let(self, obj: Value, parent: Node) -> Node:
         node = Let(parent)
         remainder = {}
+        if not isinstance(obj, dict):
+            raise NoParseError()
         for key, value in obj.items():
             if key == '::let':
                 for var_key, var_value in value.items():

@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="jinsi",
-    version="0.1.0",
+    version="0.1.1",
     author="Julian Fleischer",
     author_email="tirednesscankill@warhog.net",
     description="JSON/YAML homoiconic templating language",

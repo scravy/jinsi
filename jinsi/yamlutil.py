@@ -3,11 +3,13 @@ import re
 import yaml
 import yaml.composer
 import yaml.constructor
+import yaml.emitter
 import yaml.parser
 import yaml.reader
-import yaml.resolver
+import yaml.representer
 import yaml.resolver
 import yaml.scanner
+import yaml.serializer
 from dezimal import Dec
 
 
@@ -49,17 +51,32 @@ yaml.add_constructor('!dec', dec_constructor, Loader)
 
 
 class Dumper(yaml.Dumper):
+
+    def represent_str(self, data):
+        if '\n' in data:
+            return self.represent_scalar('tag:yaml.org,2002:str', data, style='|')
+        else:
+            return self.represent_scalar('tag:yaml.org,2002:str', data)
+
+    def represent_dec(self, data):
+        s = str(data)
+        if '.' in s:
+            tag = 'tag:yaml.org,2002:float'
+        else:
+            tag = 'tag:yaml.org,2002:int'
+        return self.represent_scalar(tag, str(data))
+
     def ignore_aliases(self, data):
         return True
 
 
-def dec_representer(dumper, data):
-    s = str(data)
-    if '.' in s:
-        tag = 'tag:yaml.org,2002:float'
-    else:
-        tag = 'tag:yaml.org,2002:int'
-    return dumper.represent_scalar(tag, str(data))
+yaml.add_representer(Dec, Dumper.represent_dec, Dumper=Dumper)
+yaml.add_representer(str, Dumper.represent_str, Dumper=Dumper)
 
 
-yaml.add_representer(Dec, dec_representer, Dumper)
+def dumpyaml(data) -> str:
+    return yaml.dump(
+        data,
+        Dumper=Dumper,
+        default_flow_style=False,
+    )
