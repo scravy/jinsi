@@ -50,6 +50,74 @@ def dec_constructor(loader, node):
 yaml.add_constructor('!dec', dec_constructor, Loader)
 
 
+def str_node(value: str) -> yaml.ScalarNode:
+    return yaml.ScalarNode(tag="tag:yaml.org,2002:str", value=value)
+
+
+def map_node(value) -> yaml.MappingNode:
+    return yaml.MappingNode(tag="tag:yaml.org,2002:map", value=value)
+
+
+def seq_node(value) -> yaml.SequenceNode:
+    return yaml.SequenceNode(tag="tag:yaml.org,2002:seq", value=value)
+
+
+def aws_cloudformation_intrinsic_function(loader, node):
+    fn = f"Fn::{node.tag[1:]}"
+    if node.tag in ('!Ref', '!Condition'):
+        fn = 'Ref'
+    elif node.tag == '!GetAtt' and isinstance(node.value, str):
+        res, attr = node.value.split(".", maxsplit=2)
+        node = yaml.SequenceNode(
+            tag="tag:yaml.org,2002:seq",
+            value=[str_node(res), str_node(attr)]
+        )
+    sub_node: yaml.Node
+    if isinstance(node, yaml.SequenceNode):
+        sub_node = seq_node(node.value)
+    elif isinstance(node, yaml.MappingNode):
+        sub_node = map_node(node.value)
+    elif node.value is None:
+        sub_node = yaml.ScalarNode('tag:yaml.org,2002:null', node.value)
+    elif isinstance(node.value, str):
+        sub_node = yaml.ScalarNode('tag:yaml.org,2002:str', node.value)
+    elif isinstance(node.value, bool):
+        sub_node = yaml.ScalarNode('tag:yaml.org,2002:bool', node.value)
+    elif isinstance(node.value, int):
+        sub_node = yaml.ScalarNode('tag:yaml.org,2002:int', node.value)
+    elif isinstance(node.value, float):
+        sub_node = yaml.ScalarNode('tag:yaml.org,2002:float', node.value)
+    else:
+        raise ValueError(node)
+    new_node = map_node([(str_node(fn), sub_node)])
+    return loader.construct_object(new_node)
+
+
+aws_cloudformation_intrinsic_functions = [
+    "Base64",
+    "Cidr",
+    "FindInMap",
+    "GetAtt",
+    "GetAZs",
+    "ImportValue",
+    "Join",
+    "Select",
+    "Split",
+    "Sub",
+    "Transform",
+    "Ref",
+    "And",
+    "Equals",
+    "If",
+    "Not",
+    "Or",
+    "Condition",
+]
+
+for func in aws_cloudformation_intrinsic_functions:
+    yaml.add_constructor(f"!{func}", aws_cloudformation_intrinsic_function, Loader)
+
+
 class Dumper(yaml.Dumper):
 
     def represent_str(self, data):

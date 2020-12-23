@@ -4,7 +4,10 @@ import functools
 import hashlib
 import re
 import struct
+from decimal import Decimal
 from typing import Callable, List, Optional
+
+from dezimal import Dec
 
 from jinsi.exceptions import NoMergePossible
 
@@ -252,6 +255,34 @@ def parse_name(name) -> List[str]:
             if current_part:
                 parts.append("".join(current_part).lower())
     return parts
+
+
+def simplify_dict(thing):
+    try:
+        items = thing.items()
+    except AttributeError:
+        return None
+    result = {}
+    for key, value in items:
+        result[key] = simplify(value)
+    return result
+
+
+def simplify(thing):
+    if thing is None:
+        return thing
+    if isinstance(thing, (bool, str, int, float, Decimal)):
+        return thing
+    if isinstance(thing, Dec):
+        if thing.scale == 0:
+            return int(thing)
+        else:
+            return Decimal(str(thing))
+    # noinspection PyTypeChecker
+    if (result := simplify_dict(thing)) is not None:
+        return result
+    # noinspection PyTypeChecker
+    return [simplify(elem) for elem in thing]
 
 
 def empty(value) -> bool:

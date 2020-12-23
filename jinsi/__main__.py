@@ -1,7 +1,7 @@
 import re
 import sys
 
-from jinsi import load_yaml, load_file, render_json, render_yaml
+from jinsi import parse_yaml, parse_file, render_json, render_yaml
 
 
 def main():
@@ -22,9 +22,9 @@ def main():
         args.append(arg)
     for arg in args:
         if arg == '-':
-            doc = load_yaml(sys.stdin.read())
+            doc = parse_yaml(sys.stdin.read())
         else:
-            doc = load_file(arg)
+            doc = parse_file(arg)
         if fmt_json:
             print(render_json(doc, **env))
         else:
