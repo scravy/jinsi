@@ -1,3 +1,4 @@
+import datetime
 import json
 from typing import Iterator, Any, Union
 
@@ -11,7 +12,7 @@ class Encoder(json.JSONEncoder):
         super().__init__(**kwargs)
 
     # noinspection PyMethodMayBeStatic
-    def default_raw(self) -> Union[str, type(None)]:
+    def default_raw(self, o: Any) -> Union[str, type(None)]:
         return None
 
     def encode(self, o: Any) -> str:
@@ -119,6 +120,8 @@ def _make_iterencode(
             yield encode_int(o)
         elif isinstance(o, float):
             yield encode_float(o)
+        elif isinstance(o, (datetime.date, datetime.datetime)):
+            yield encode_str(str(o))
         else:
             raw = encode_other_raw(o)
             if raw is not None:
