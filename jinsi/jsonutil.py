@@ -65,25 +65,24 @@ def _make_iterencode(
         next=next,
         isinstance=isinstance,
         str=str,
-        dict=dict,
         list=list,
         int=int,
         float=float,
         dec=Dec
 ):
     def _iterencode_dict(o):
+        it = iter(o.items())
         if not o:
             yield '{}'
             return
         yield '{'
-        it = iter(o.items())
         key, value = next(it)
-        yield encode_str(key)
+        yield encode_str(str(key))
         yield ':'
         yield from _iterencode(value)
         for key, value in it:
             yield ','
-            yield encode_str(key)
+            yield encode_str(str(key))
             yield ':'
             yield from _iterencode(value)
         yield '}'
@@ -110,8 +109,6 @@ def _make_iterencode(
             yield 'true'
         elif o is False:
             yield 'false'
-        elif isinstance(o, dict):
-            yield from _iterencode_dict(o)
         elif isinstance(o, list):
             yield from _iterencode_list(o)
         elif isinstance(o, dec):
@@ -123,11 +120,14 @@ def _make_iterencode(
         elif isinstance(o, (datetime.date, datetime.datetime)):
             yield encode_str(str(o))
         else:
-            raw = encode_other_raw(o)
-            if raw is not None:
-                yield raw
-            else:
-                yield from _iterencode(encode_other(o))
+            try:
+                yield from _iterencode_dict(o)
+            except (TypeError, AttributeError):
+                raw = encode_other_raw(o)
+                if raw is not None:
+                    yield raw
+                else:
+                    yield from _iterencode(encode_other(o))
 
     return _iterencode
 
