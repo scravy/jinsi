@@ -1,6 +1,6 @@
 # JSON/YAML homoiconic templating language
 
-Install
+[![Downloads](https://static.pepy.tech/personalized-badge/jinsi?period=total&units=international_system&left_color=black&right_color=orange&left_text=Downloads)](https://pepy.tech/project/awesome-pattern-matching) [![PyPI version](https://badge.fury.io/py/jinsi.svg)](https://pypi.org/project/jinsi/)
 
 ```shell script
 python3 -m pip install jinsi
