@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os.path
+import textwrap
 from typing import Union
 
 import yaml
@@ -9,8 +10,8 @@ from .environment import Environment
 from .jsonutil import dumpjson
 from .nodes import Node, Empty, Value, Constant
 from .parser import Parser
-from .yamlutil import Loader, Dumper, dumpyaml
 from .util import treat
+from .yamlutil import Loader, Dumper, dumpyaml
 
 # noinspection PyBroadException
 try:
@@ -77,19 +78,19 @@ def render_file_json(file: str, **env) -> str:
     return dumpjson(result)
 
 
-def load_yaml(yaml_str: str, *, numtype=float, **env) -> Value:
-    doc = parse_yaml(yaml_str)
+def load_yaml(yaml_str: str, *, numtype: type = float, **env) -> Value:
+    doc = parse_yaml(textwrap.dedent(yaml_str))
     result = evaluate(doc, **env)
     return treat(result, numtype=numtype)
 
 
-def load_file(path: str, *, numtype=float, **env) -> Value:
+def load_file(path: str, *, numtype: type = float, **env) -> Value:
     doc = parse_file(path)
     result = evaluate(doc, **env)
     return treat(result, numtype=numtype)
 
 
-def load_from(file_like, *, numtype=float, **env) -> Value:
+def load_from(file_like, *, numtype: type = float, **env) -> Value:
     doc = parse_from(file_like)
     result = evaluate(doc, **env)
     return treat(result, numtype=numtype)

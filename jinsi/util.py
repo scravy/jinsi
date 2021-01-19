@@ -316,11 +316,11 @@ def treat(value, *, numtype):
             return val
         if isinstance(val, dict):
             for k in val:
-                val[k] = rtreat(val)
+                val[k] = rtreat(val[k])
             return val
         if isinstance(val, list):
             for i in range(0, len(val)):
-                val[i] = rtreat(val)
+                val[i] = rtreat(val[i])
             return val
         if isinstance(val, (int, float, decimal.Decimal, dezimal.Dezimal)):
             return convert_num(val, numtype)

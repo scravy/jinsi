@@ -14,7 +14,7 @@ class X:
             count += 1
 
 
-class JinsiExamples(unittest.TestCase):
+class JsonDumpTests(unittest.TestCase):
 
     def test_jsondump(self):
         self.assertEqual(dumpjson(X(1, "abc", 3)), '{"0":1,"1":"abc","2":3}')
