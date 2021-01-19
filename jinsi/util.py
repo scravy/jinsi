@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import decimal
 import functools
 import hashlib
 import re
@@ -7,6 +8,7 @@ import struct
 from decimal import Decimal
 from typing import Callable, List, Optional
 
+import dezimal
 from dezimal import Dec
 
 from jinsi.exceptions import NoMergePossible
@@ -279,7 +281,8 @@ def simplify(thing):
         else:
             return Decimal(str(thing))
     # noinspection PyTypeChecker
-    if (result := simplify_dict(thing)) is not None:
+    result = simplify_dict(thing)
+    if result is not None:
         return result
     # noinspection PyTypeChecker
     return [simplify(elem) for elem in thing]
@@ -289,3 +292,38 @@ def empty(value) -> bool:
     if isinstance(value, (bool, list, dict, str)):
         return not value
     return value is None
+
+
+def convert_num(value, totype):
+    if isinstance(totype, (list, tuple)):
+        for t in totype:
+            try:
+                return convert_num(value, t)
+            except TypeError:
+                pass
+    elif isinstance(value, totype):
+        return value
+    elif issubclass(totype, (int, float, str)):
+        return totype(value)
+    elif issubclass(totype, (decimal.Decimal, dezimal.Dezimal)):
+        return decimal.Decimal(str(value))
+    raise TypeError(f"{value} of type {type(value)} can not be converted to {totype}")
+
+
+def treat(value, *, numtype):
+    def rtreat(val):
+        if isinstance(val, (str, bool)) or val is None:
+            return val
+        if isinstance(val, dict):
+            for k in val:
+                val[k] = rtreat(val)
+            return val
+        if isinstance(val, list):
+            for i in range(0, len(val)):
+                val[i] = rtreat(val)
+            return val
+        if isinstance(val, (int, float, decimal.Decimal, dezimal.Dezimal)):
+            return convert_num(val, numtype)
+        raise TypeError(f"Do not know how to process {val} of type {type(val)}")
+
+    return rtreat(value)

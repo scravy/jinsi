@@ -53,7 +53,8 @@ def main():
             if arg in ("-j", "-json", "--json"):
                 fmt_json = True
                 continue
-            if m := re.match(r"([^=]+)=(.*)", arg):
+            m = re.match(r"([^=]+)=(.*)", arg)
+            if m:
                 key = m.group(1)
                 val = m.group(2)
                 env[key] = val
