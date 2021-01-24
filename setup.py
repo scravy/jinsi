@@ -32,7 +32,7 @@ setuptools.setup(
     ],
     python_requires='>=3.7',
     install_requires=[
-        'dezimal>=0.3.0',
+        'dezimal>=0.4.0',
         'pyyaml>=5.0.0',
     ],
 )
