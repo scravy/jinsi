@@ -5,7 +5,7 @@ from datetime import date, datetime
 from inspect import getattr_static
 
 import yaml
-from dezimal import Dec
+from dezimal import Dezimal
 
 from .exceptions import MalformedEachError, MalformedNameError, NoParseError, NoSuchFunctionError
 from .expressions import parse_expression
@@ -28,7 +28,7 @@ class Parser:
     def parse_node(self, obj: Value, parent: Node) -> Node:
         if isinstance(obj, list):
             return self.parse_sequence(obj, parent)
-        if isinstance(obj, (type(None), bool, int, float, str, Dec, date, datetime)):
+        if isinstance(obj, (type(None), bool, int, float, str, Dezimal, date, datetime)):
             return self.parse_constant(obj, parent)
         if '::include' in obj:
             includes = obj['::include']

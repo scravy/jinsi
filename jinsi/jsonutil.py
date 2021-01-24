@@ -2,7 +2,7 @@ import datetime
 import json
 from typing import Iterator, Any, Union
 
-from dezimal import Dec
+from dezimal import Dezimal
 
 INFINITY = float('inf')
 
@@ -68,7 +68,7 @@ def _make_iterencode(
         list=list,
         int=int,
         float=float,
-        dec=Dec
+        dec=Dezimal,
 ):
     def _iterencode_dict(o):
         it = iter(o.items())

@@ -3,13 +3,15 @@ from __future__ import annotations
 import decimal
 import functools
 import hashlib
+import json
 import re
 import struct
 from decimal import Decimal
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, Union, Dict
 
 import dezimal
-from dezimal import Dec
+import yaml
+from dezimal import Dezimal
 
 from jinsi.exceptions import NoMergePossible
 
@@ -275,7 +277,7 @@ def simplify(thing):
         return thing
     if isinstance(thing, (bool, str, int, float, Decimal)):
         return thing
-    if isinstance(thing, Dec):
+    if isinstance(thing, Dezimal):
         if thing.scale == 0:
             return int(thing)
         else:
@@ -327,3 +329,23 @@ def treat(value, *, numtype):
         raise TypeError(f"Do not know how to process {val} of type {type(val)}")
 
     return rtreat(value)
+
+
+JsonValue = Union[type(None), bool, int, float, str, List['JsonValue'], Dict[str, 'JsonValue']]
+
+
+def load_all(data: str) -> List[JsonValue]:
+    dec = json.JSONDecoder()
+    data = data.strip()
+    if not data:
+        return
+    while data:
+        try:
+            obj, ix = dec.raw_decode(data)
+        except json.JSONDecodeError as err:
+            break
+        yield obj
+        data = data[ix:].lstrip()
+    if not data:
+        return
+    yield from yaml.load_all(data, Loader=yaml.SafeLoader)

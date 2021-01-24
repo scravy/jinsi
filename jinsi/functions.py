@@ -1,6 +1,6 @@
 import hashlib
 
-from dezimal import Dec
+from dezimal import Dezimal
 
 from .util import parse_name, empty
 
@@ -9,11 +9,11 @@ class Functions:
 
     @staticmethod
     def range_inclusive(from_, to):
-        return [Dec(x) for x in range(int(from_), int(to) + 1)]
+        return [Dezimal(x) for x in range(int(from_), int(to) + 1)]
 
     @staticmethod
     def range_exclusive(from_, to):
-        return [Dec(x) for x in range(int(from_), int(to))]
+        return [Dezimal(x) for x in range(int(from_), int(to))]
 
     # text functions
 
@@ -133,7 +133,7 @@ class Functions:
 
     @staticmethod
     def is_number(value):
-        return isinstance(value, (Dec, int, float))
+        return isinstance(value, (Dezimal, int, float))
 
     @staticmethod
     def is_string(value):
@@ -155,7 +155,7 @@ class Functions:
 
     @staticmethod
     def number(value):
-        return Dec(value)
+        return Dezimal(value)
 
     @staticmethod
     def string(value):
@@ -175,16 +175,16 @@ class Functions:
 
     @staticmethod
     def sum(*args):
-        result = Dec(0)
+        result = Dezimal(0)
         for arg in args:
-            result += Dec(arg)
+            result += Dezimal(arg)
         return result
 
     @staticmethod
     def product(*args):
-        result = Dec(1)
+        result = Dezimal(1)
         for arg in args:
-            result *= Dec(arg)
+            result *= Dezimal(arg)
         return result
 
     # comparison
@@ -225,19 +225,19 @@ class Functions:
 
     @staticmethod
     def add(a, b):
-        return Dec(a) + Dec(b)
+        return Dezimal(a) + Dezimal(b)
 
     @staticmethod
     def sub(a, b):
-        return Dec(a) - Dec(b)
+        return Dezimal(a) - Dezimal(b)
 
     @staticmethod
     def mul(a, b):
-        return Dec(a) * Dec(b)
+        return Dezimal(a) * Dezimal(b)
 
     @staticmethod
     def div(a, b, maxscale=None, minscale=17):
-        return Dec.div(Dec(a), Dec(b), maxscale, minscale)
+        return Dezimal.div(Dezimal(a), Dezimal(b), maxscale, minscale)
 
     # lists and strings
 
