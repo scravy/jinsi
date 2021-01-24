@@ -4,6 +4,12 @@ test:
 venv:
 	python3 -m venv .venv
 
+coverage:
+	rm -f .coverage
+	coverage run --branch --source=jinsi -m unittest discover
+	coverage report | tee coverage.txt
+	coverage html
+
 install:
 	python3 -m pip install -r requirements.txt
 
