@@ -8,9 +8,9 @@ class YamlDumpTest(unittest.TestCase):
 
     def test_dump_yaml(self):
         self.assertEqual(textwrap.dedent("""\
-            abc: 123
-            xyz: 789
+            xyz: 123
+            abc: 789
         """), dumpyaml({
-            "xyz": 789,
-            "abc": 123,
+            "xyz": 123,
+            "abc": 789,
         }))
