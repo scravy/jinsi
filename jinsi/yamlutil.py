@@ -120,10 +120,10 @@ for func in aws_cloudformation_intrinsic_functions:
 
 class Dumper(yaml.Dumper):
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
         if 'sort_keys' not in kwargs:
             kwargs['sort_keys'] = False
-        super().__init__(**kwargs)
+        super(Dumper, self).__init__(*args, **kwargs)
 
     def represent_str(self, data):
         if '\n' in data:
