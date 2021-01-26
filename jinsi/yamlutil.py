@@ -120,6 +120,11 @@ for func in aws_cloudformation_intrinsic_functions:
 
 class Dumper(yaml.Dumper):
 
+    def __init__(self, **kwargs):
+        if 'sort_keys' not in kwargs:
+            kwargs['sort_keys'] = False
+        super().__init__(**kwargs)
+
     def represent_str(self, data):
         if '\n' in data:
             return self.represent_scalar('tag:yaml.org,2002:str', data, style='|')
