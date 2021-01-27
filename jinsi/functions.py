@@ -77,6 +77,10 @@ class Functions:
         return value + char * diff
 
     @staticmethod
+    def str_replace(needle, replacement, haystack):
+        return str(haystack).replace(needle, replacement)
+
+    @staticmethod
     def explode(separator, value):
         return value.split(separator)
 
@@ -288,12 +292,25 @@ class Functions:
         return items[int(n):]
 
     @staticmethod
+    def take_right(n, items):
+        if not isinstance(items, list):
+            items = str(items)
+        return items[-int(n):]
+
+    @staticmethod
+    def drop_right(n, items):
+        if not isinstance(items, list):
+            items = str(items)
+        return items[:-int(n)]
+
+    @staticmethod
     def concat(*items):
         if all(isinstance(item, list) for item in items):
             result = []
             for ls in items:
                 for item in ls:
                     result.append(item)
+            return result
         return "".join([str(s) for s in items])
 
     # object creation utilities
