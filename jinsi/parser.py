@@ -60,9 +60,13 @@ class Parser:
         remaining = {}
         # TODO: decide - if ::when or ::then are here then NoParse - maybe?
         for key, value in obj.items():
-            if '::get' in obj:
+            if key == '::ignore':
+                continue
+            elif key == '::verbatim':
+                nodes.append(self.parse_constant(value, parent))
+            elif '::get' in obj:
                 nodes.append(parse_expression(obj['::get'], parent))
-            elif key[:8] == "::format":
+            elif key[:8] == "::format" or key[:5] == "::fmt":
                 nodes.append(self.parse_format(value, parent))
             elif key[:6] == "::call":
                 nodes.append(self.parse_application(key, value, parent))

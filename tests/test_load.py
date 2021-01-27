@@ -39,3 +39,13 @@ class LoadTest(unittest.TestCase):
         self.assertTrue(match(doc, Strict(Object(
             foo=Strict(float("1.34"))
         ))))
+
+    def test_load_verbatim_and_ignore(self):
+        doc = load_yaml("""\
+            foo:
+              ::verbatim:
+                some text
+            ::ignore:
+              some shit
+        """)
+        self.assertEqual({'foo': 'some text'}, doc)

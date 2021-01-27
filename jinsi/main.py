@@ -62,7 +62,11 @@ def main():
         args.append(arg)
     if not args:
         args = ["-"]
+    count = 0
     for arg in args:
+        count += 1
+        if count > 1 and not fmt_json:
+            print("---")
         if arg == '-':
             doc = parse_yaml(sys.stdin.read())
         else:
@@ -70,5 +74,4 @@ def main():
         if fmt_json:
             print(render_json(doc, **env))
         else:
-            print("---")
             print(render_yaml(doc, **env))
