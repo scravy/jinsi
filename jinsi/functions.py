@@ -2,7 +2,7 @@ import hashlib
 
 from dezimal import Dezimal
 
-from . import dumpjson
+from .jsonutil import dumpjson, loadjson
 from .util import parse_name, empty
 
 
@@ -179,6 +179,10 @@ class Functions:
     @staticmethod
     def json_serialize(value):
         return dumpjson(value)
+
+    @staticmethod
+    def json_read(value):
+        return loadjson(value)
 
     # aggregation
 

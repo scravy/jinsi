@@ -134,3 +134,7 @@ def _make_iterencode(
 
 def dumpjson(obj, **kwargs) -> str:
     return json.dumps(obj, cls=Encoder, **kwargs)
+
+
+def loadjson(s):
+    return json.loads(s)
