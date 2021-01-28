@@ -37,6 +37,14 @@ class FunctionsTest(unittest.TestCase):
     def test_replace(self):
         self.assertEqual("foo qux bar foo qux", Functions.str_replace("foo", "foo qux", "foo bar foo"))
 
+    def test_deepmerge(self):
+        def o(**kw):
+            return kw
+
+        self.assertEqual(o(a=1, b=2, c=3), Functions.deepmerge(o(a=1), o(b=2), o(c=3)))
+        self.assertEqual(o(a=1, b=2, c=3), Functions.deepmerge(o(a=8), o(b=2, a=1), o(c=3)))
+        self.assertEqual(o(a=1, b=o(c=7)), Functions.deepmerge(o(a=1, b=o(c=3)), o(b=o(c=7))))
+
 
 if __name__ == '__main__':
     unittest.main()
