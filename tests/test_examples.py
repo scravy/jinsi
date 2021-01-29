@@ -195,5 +195,4 @@ class JinsiExamples(unittest.TestCase):
                 Dezimal('0.89700996677740863787375415282392026578073')
             ]
         }
-        print(repr(evaluate(doc)))
         self.assertEqual(expected, evaluate(doc))

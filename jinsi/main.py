@@ -1,3 +1,4 @@
+import os
 import re
 import sys
 import textwrap
@@ -44,6 +45,8 @@ def main():
             opt_parsing = False
             continue
         if opt_parsing:
+            if arg in ("help", "version") and not os.path.exists(arg):
+                arg = f"--{arg}"
             if arg in ("-v", "-version", "--version"):
                 print_version()
                 return

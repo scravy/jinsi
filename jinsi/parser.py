@@ -6,6 +6,7 @@ from inspect import getattr_static
 
 import yaml
 from dezimal import Dezimal
+from apm import *
 
 from .exceptions import MalformedEachError, MalformedNameError, NoParseError, NoSuchFunctionError
 from .expressions import parse_expression
