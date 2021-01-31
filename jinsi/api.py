@@ -58,8 +58,8 @@ def _parse_string(s: str) -> Iterator[Node]:
 def _parse_file(path: str, *, _open) -> Iterator[Node]:
     with _open(path) as f:
         docs = loadyaml_all(f)
-    for doc in docs:
-        yield _parse(doc)
+        for doc in docs:
+            yield _parse(doc)
 
 
 def _render(node: Node, *, args: Dict, as_json: bool) -> str:
@@ -120,10 +120,10 @@ def load_string(s: str, *, args: Dict = None, numtype: type = float) -> Iterator
 def load_file(path: str, *, args: Dict = None, numtype: type = float, _open=open) -> Iterator[Value]:
     with _open(path) as file:
         docs = loadyaml_all(file)
-    for doc in docs:
-        node = _parse(doc)
-        value = _evaluate(node, args=args)
-        yield treat(value, numtype=numtype)
+        for doc in docs:
+            node = _parse(doc)
+            value = _evaluate(node, args=args)
+            yield treat(value, numtype=numtype)
 
 
 def load1s(s: str, *, args: Dict = None, numtype: type = float) -> Value:
