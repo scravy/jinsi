@@ -71,6 +71,24 @@ class LoadTest(unittest.TestCase):
         """)
         self.assertEqual({'foo': {'qu<<x>>': 'quuz'}}, doc)
 
+    def test_load_format_path(self):
+        doc = load1s("""\
+            ::let:
+                resource:
+                    name: some-resource
+                    uuid: F3E835D1-9BCD-4D51-BA75-C90671E3B73E
+                $res:
+                    name: some-other-resource
+                    uuid: 0CD49732-28AD-4437-8968-860DE4D84306
+            test: |
+                <<resource.name>> (<<resource.uuid>>)
+                <<$res.name>> (<<$res.uuid>>)
+        """)
+        self.assertEqual({
+            "test": "some-resource (F3E835D1-9BCD-4D51-BA75-C90671E3B73E)\n"
+                    "some-other-resource (0CD49732-28AD-4437-8968-860DE4D84306)\n"
+        }, doc)
+
 
 if __name__ == '__main__':
     unittest.main()

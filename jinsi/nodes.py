@@ -248,9 +248,10 @@ class Format(Node):
     def evaluate(self, env: Environment) -> Value:
         def subst(key: str) -> str:
             if key[:1] == "$":
-                result = env.get_dyn(key[1:])
+                getter = GetDyn(parent=self, path=key[1:].split("."))
             else:
-                result = self.get_let(key).evaluate(env)
+                getter = GetLet(parent=self, path=key.split("."))
+            result = getter.evaluate(env)
             return str(result)
 
         return substitute(self.value, subst)

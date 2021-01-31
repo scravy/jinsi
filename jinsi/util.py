@@ -179,14 +179,14 @@ def substitute(thing, callback: Callable[[str], str]):
     if isinstance(thing, (type(None), bool, int, float)):
         return thing
     if isinstance(thing, str):
-        fs = re.split(r"<<(\$?[a-zA-Z0-9-_]+)>>", thing)
+        fs = re.split(r"<<(\$?[a-zA-Z0-9-_]+(\.[a-zA-Z0-9-_]+)*)>>", thing)
         result = []
-        is_even = True
+        ix = 0
         for f in fs:
-            is_even = not is_even
-            if is_even:
+            ix = (ix + 1) % 3
+            if ix == 2:
                 result.append(callback(f))
-            else:
+            elif ix == 1:
                 result.append(f)
         return "".join(result)
     elif isinstance(thing, list):
