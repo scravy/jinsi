@@ -6,7 +6,6 @@ from inspect import getattr_static
 
 import yaml
 from dezimal import Dezimal
-from apm import *
 
 from .exceptions import MalformedEachError, MalformedNameError, NoParseError, NoSuchFunctionError
 from .expressions import parse_expression
@@ -29,7 +28,9 @@ class Parser:
     def parse_node(self, obj: Value, parent: Node) -> Node:
         if isinstance(obj, list):
             return self.parse_sequence(obj, parent)
-        if isinstance(obj, (type(None), bool, int, float, str, Dezimal, date, datetime)):
+        if isinstance(obj, str):
+            return self.parse_format(obj, parent)
+        if isinstance(obj, (type(None), bool, int, float, Dezimal, date, datetime)):
             return self.parse_constant(obj, parent)
         if '::include' in obj:
             includes = obj['::include']
@@ -67,8 +68,6 @@ class Parser:
                 nodes.append(self.parse_constant(value, parent))
             elif '::get' in obj:
                 nodes.append(parse_expression(obj['::get'], parent))
-            elif key[:8] == "::format" or key[:5] == "::fmt":
-                nodes.append(self.parse_format(value, parent))
             elif key[:6] == "::call":
                 nodes.append(self.parse_application(key, value, parent))
             elif key[:6] == "::each":

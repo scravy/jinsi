@@ -333,19 +333,3 @@ def treat(value, *, numtype):
 
 JsonValue = Union[type(None), bool, int, float, str, List['JsonValue'], Dict[str, 'JsonValue']]
 
-
-def load_all(data: str) -> List[JsonValue]:
-    dec = json.JSONDecoder()
-    data = data.strip()
-    if not data:
-        return
-    while data:
-        try:
-            obj, ix = dec.raw_decode(data)
-        except json.JSONDecodeError as err:
-            break
-        yield obj
-        data = data[ix:].lstrip()
-    if not data:
-        return
-    yield from yaml.load_all(data, Loader=yaml.SafeLoader)

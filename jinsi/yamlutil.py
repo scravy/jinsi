@@ -152,3 +152,11 @@ def dumpyaml(data) -> str:
         Dumper=Dumper,
         default_flow_style=False,
     )
+
+
+def loadyaml(stream):
+    return yaml.load(stream, Loader=Loader)
+
+
+def loadyaml_all(stream):
+    return yaml.load_all(stream, Loader=Loader)

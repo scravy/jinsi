@@ -1,15 +1,12 @@
 from __future__ import annotations
 
-import decimal
-from typing import Dict, List, Union
+from typing import Dict, List
 
-import dezimal
 
 from .environment import Environment
 from .exceptions import NoSuchVariableError, NoSuchEnvironmentVariableError
 from .util import Singleton, select, substitute, empty, cached_method
-
-Value = Union[None, str, bool, int, float, decimal.Decimal, dezimal.Dezimal, List['Value'], Dict[str, 'Value']]
+from .value import Value
 
 
 class Node:
@@ -126,7 +123,8 @@ class Object(Node):
     def evaluate(self, env: Environment) -> Value:
         result = {}
         for key, node in self.children.items():
-            result[key] = node.evaluate(env)
+            key_f = Format(self, key).evaluate(env)
+            result[key_f] = node.evaluate(env)
         return result
 
 

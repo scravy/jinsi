@@ -7,6 +7,11 @@ from dezimal import Dezimal
 INFINITY = float('inf')
 
 
+class Decoder(json.JSONDecoder):
+    def __init__(self):
+        super().__init__(parse_int=Dezimal, parse_float=Dezimal)
+
+
 class Encoder(json.JSONEncoder):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -138,3 +143,12 @@ def dumpjson(obj, **kwargs) -> str:
 
 def loadjson(s):
     return json.loads(s)
+
+
+def loadjson_all(s):
+    dec = Decoder()
+    data = s.strip()
+    while data:
+        obj, ix = dec.raw_decode(data)
+        yield obj
+        data = data[ix:].lstrip()

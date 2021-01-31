@@ -11,13 +11,11 @@
     - ::get: $y
     - ::get: $z
 
-formatted:
-  ::format: hello <<x>> woohoo <<y>> yeah <<$x>> and <<$y>>
+formatted: hello <<x>> woohoo <<y>> yeah <<$x>> and <<$y>>
 
 cool:
-  ::format:
-    some-<<x>>: <<y>>
-    woohoo: <<x>>/<<y>>
+  some-<<x>>: <<y>>
+  woohoo: <<x>>/<<y>>
 
 list:
   - ::get: x

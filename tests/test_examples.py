@@ -1,15 +1,40 @@
 import json
+import textwrap
 import unittest
 
+import dezimal
+import yaml
 from dezimal import Dezimal
 
 from jinsi import *
+from jinsi.yamlutil import Loader
+
+import os
 
 
 class JinsiExamples(unittest.TestCase):
 
+    def _check(self, expected, doc: str, dezimal_foo: bool = False, args: dict = None):
+        rendered = render1s(doc, as_json=True, args=args)
+        if dezimal_foo:
+            self.assertEqual(expected, json.loads(rendered, parse_int=dezimal.Dezimal, parse_float=dezimal.Dezimal))
+        else:
+            self.assertEqual(expected, json.loads(rendered))
+
+        rendered = render1s(doc, as_json=False, args=args)
+        if dezimal_foo:
+            self.assertEqual(expected, yaml.load(rendered, Loader=Loader))
+        else:
+            self.assertEqual(expected, yaml.safe_load(rendered))
+
+        if dezimal_foo:
+            loaded = load1s(doc, numtype=dezimal.Dezimal, args=args)
+        else:
+            loaded = load1s(doc, args=args)
+        self.assertEqual(expected, loaded)
+
     def test_simple_template(self):
-        doc = textwrap.dedent("""\
+        doc = """\
             ::let:
               user:
                 ::object:
@@ -38,9 +63,9 @@ class JinsiExamples(unittest.TestCase):
                 - username: jack
                   password: two
                 - username: johnny
-        """)
-        rendered = render_json(doc)
-        self.assertEqual({
+        """
+
+        expected = {
             "Resources": {
                 "Jim": {
                     "Type": "AWS::IAM::User",
@@ -76,10 +101,12 @@ class JinsiExamples(unittest.TestCase):
                     }
                 }
             }
-        }, json.loads(rendered))
+        }
+
+        self._check(expected, doc)
 
     def test_example_0(self):
-        doc = textwrap.dedent("""\
+        doc = """\
             ::let:
               user:
                 ::object:
@@ -108,7 +135,7 @@ class JinsiExamples(unittest.TestCase):
                 - username: jack
                   password: two
                 - username: johnny
-        """)
+        """
 
         expected = {
             'Resources': {
@@ -138,7 +165,8 @@ class JinsiExamples(unittest.TestCase):
                         }}}
             }
         }
-        self.assertEqual(expected, evaluate(doc))
+
+        self._check(expected, doc)
 
     def test_example_1(self):
         doc = textwrap.dedent("""\
@@ -195,4 +223,107 @@ class JinsiExamples(unittest.TestCase):
                 Dezimal('0.89700996677740863787375415282392026578073')
             ]
         }
-        self.assertEqual(expected, evaluate(doc))
+
+        self._check(expected, doc, dezimal_foo=True)
+
+    def test_example_2(self):
+        doc = textwrap.dedent("""\
+            ::let:
+              x: foo
+              y: bar
+              $x: qux
+              $y: quuz
+            
+              template:
+                - ::get: x
+                - ::get: y
+                - ::get: $x
+                - ::get: $y
+                - ::get: $z
+            
+            formatted: hello <<x>> woohoo <<y>> yeah <<$x>> and <<$y>>
+            
+            cool:
+              some-<<x>>: <<y>>
+              woohoo: <<x>>/<<y>>
+            
+            list:
+              - ::get: x
+              - ::get: y
+              - ::get: $x
+              - ::get: $y
+              - ::get: JINSI_TEST_SHELL
+              - ::get: JINSI_TEST_HOSTNAME
+                ::else: unknown
+            
+            x:
+              ::let:
+                something:
+                  ::get: $m
+              y:
+                - ::get: something
+                  ::let:
+                    $m: 3
+                  ::else:
+                    ::get: $z
+                - ::get: $q
+                  ::else: All okay.
+            
+            applied:
+              ::let:
+                x: keyfoo
+                y: keybar
+                $x: keyqux
+                $y: keyquuz
+                $z: zeeee
+            
+              ::call template:
+                $y: callquuz
+            
+            applied2:
+              ::call: template
+        """)
+
+        expected = {
+            'formatted': 'hello foo woohoo bar yeah qux and quuz',
+            'cool': {
+                'some-foo': 'bar',
+                'woohoo': 'foo/bar',
+            },
+            'list': [
+                'foo',
+                'bar',
+                'qux',
+                'quuz',
+                '/bin/hash',
+                'unknown',
+            ],
+            'x': {
+                'y': [
+                    3.0,
+                    'All okay.',
+                ]
+            },
+            'applied': [
+                'foo',
+                'bar',
+                'keyqux',
+                'callquuz',
+                'zeeee',
+            ],
+            'applied2': [
+                'foo',
+                'bar',
+                'qux',
+                'quuz',
+                'zzz',
+            ],
+        }
+
+        os.environ['JINSI_TEST_SHELL'] = '/bin/hash'
+
+        self._check(expected, doc, args={'z': 'zzz'})
+
+
+if __name__ == '__main__':
+    unittest.main()

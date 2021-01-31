@@ -3,16 +3,17 @@ import re
 import sys
 import textwrap
 
-from jinsi import __pkginfo__
-from jinsi import parse_yaml, parse_file, render_json, render_yaml
+from jinsi import *
+
+import jinsi
 
 
-def print_version():
-    print(f"jinsi {__pkginfo__.version}")
+def print_version(*, _print=print):
+    _print(f"jinsi {jinsi.__version__}")
 
 
-def print_help():
-    print(textwrap.dedent(f"""
+def print_help(*, _print=print):
+    _print(textwrap.dedent(f"""
         {sys.argv[0]} [-j] [args...]
     
         ...where each argument may be:
@@ -33,12 +34,15 @@ def print_help():
     """))
 
 
-def main():
+def main(*argv, _print=print, _open=open, _stdin=sys.stdin):
     args = []
     env = {}
     fmt_json = False
-    args_it = iter(sys.argv)
-    next(args_it)
+    if argv:
+        args_it = iter(argv)
+    else:
+        args_it = iter(sys.argv)
+        next(args_it)
     opt_parsing = True
     for arg in args_it:
         if arg == "--":
@@ -48,10 +52,10 @@ def main():
             if arg in ("help", "version") and not os.path.exists(arg):
                 arg = f"--{arg}"
             if arg in ("-v", "-version", "--version"):
-                print_version()
+                print_version(_print=_print)
                 return
             if arg in ("-h", "-help", "--help"):
-                print_help()
+                print_help(_print=_print)
                 return
             if arg in ("-j", "-json", "--json"):
                 fmt_json = True
@@ -67,14 +71,18 @@ def main():
         args = ["-"]
     count = 0
     for arg in args:
-        count += 1
-        if count > 1 and not fmt_json:
-            print("---")
         if arg == '-':
-            doc = parse_yaml(sys.stdin.read())
+            docs = render_string(_stdin.read(), args=env, as_json=fmt_json)
         else:
-            doc = parse_file(arg)
-        if fmt_json:
-            print(render_json(doc, **env))
-        else:
-            print(render_yaml(doc, **env))
+            docs = render_file(arg, args=env, as_json=fmt_json, _open=_open)
+        for doc in docs:
+            count += 1
+            if fmt_json:
+                _print(doc)
+            else:
+                if count > 1:
+                    _print("---")
+                if doc[-1] == '\n':
+                    _print(doc, end='')
+                else:
+                    _print(doc)

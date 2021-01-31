@@ -9,7 +9,7 @@ from jinsi import *
 class LoadTest(unittest.TestCase):
 
     def test_load(self):
-        doc = load_yaml("""\
+        doc = load1s("""\
             foo: bar
             qux: quux
             """)
@@ -19,7 +19,7 @@ class LoadTest(unittest.TestCase):
         ))))
 
     def test_load_dezimal(self):
-        doc = load_yaml("""\
+        doc = load1s("""\
             foo: 1.34
             """, numtype=Dezimal)
         self.assertFalse(match(doc, Strict(Object(
@@ -30,7 +30,7 @@ class LoadTest(unittest.TestCase):
         ))))
 
     def test_load_float(self):
-        doc = load_yaml("""\
+        doc = load1s("""\
             foo: 1.34
             """)
         self.assertFalse(match(doc, Strict(Object(
@@ -41,7 +41,7 @@ class LoadTest(unittest.TestCase):
         ))))
 
     def test_load_verbatim_and_ignore(self):
-        doc = load_yaml("""\
+        doc = load1s("""\
             foo:
               ::verbatim:
                 some text
@@ -49,3 +49,28 @@ class LoadTest(unittest.TestCase):
               some shit
         """)
         self.assertEqual({'foo': 'some text'}, doc)
+
+    def test_load_verbatim_object(self):
+        doc = load1s("""\
+            ::let:
+                x: 'x'
+            foo:
+              qu<<x>>: quuz
+            ::ignore:
+              some shit
+        """)
+        self.assertEqual({'foo': {'qux': 'quuz'}}, doc)
+        doc = load1s("""\
+            ::let:
+                x: 'x'
+            foo:
+              ::verbatim:
+                qu<<x>>: quuz
+            ::ignore:
+              some shit
+        """)
+        self.assertEqual({'foo': {'qu<<x>>': 'quuz'}}, doc)
+
+
+if __name__ == '__main__':
+    unittest.main()
