@@ -286,8 +286,23 @@ class Functions:
         return reversed(items)
 
     @staticmethod
-    def sort(items):
+    def sort(*items):
         return sorted(items)
+
+    @staticmethod
+    def sort_by(key, items):
+        def select(item):
+            nonlocal key
+            if isinstance(key, str):
+                key = key.split('.')
+            for k in key:
+                try:
+                    item = item[k]
+                except KeyError:
+                    return None
+            return item
+
+        return sorted(items, key=select)
 
     @staticmethod
     def take(n, items):

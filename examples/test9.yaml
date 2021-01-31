@@ -1,5 +1,5 @@
 test0:
-  ::include: test.yaml
+  ::include: test0.yaml
 
 test1:
   ::include: test1.yaml

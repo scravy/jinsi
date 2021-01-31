@@ -7,16 +7,20 @@ result:
   ::get: x.a + x.b
 
 items:
-  ::sorted:
-    - name.first
-    - - name:
-          first: Bob
-          last: Doe
+  ::sort:
+    - - bob
+      - alice
+      - mallory
+
+objects:
+  ::sort_by:
+    - name
+    - - name: bob
+        id: 2
+      - name: alice
         id: 3
-      - name:
-          first: Alice
-          last: Doe
-        id: 10
+      - name: mallory
+        id: 7
 
 tests:
   - ::starts_with:
