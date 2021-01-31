@@ -22,31 +22,6 @@ python3 -m jinsi -j -  # read from stdin, render as json
 python3 -m jinsi file1.yaml file2.yaml
 ```
 
-## Usage via API
-
-```python
-from jinsi import render_json, render_yaml, render_file_json, render_file_yaml
-
-print(render_file_yaml("file.yaml"))
-# -> prints YAML
-
-print(render_file_json("file.yaml"))
-# -> prints minified JSON
-
-print(render_yaml("""
-    a: 3
-    b:
-      ::get: $arg1
-    """, arg1="bar"))
-# -> prints YAML
-
-print(render_json("""
-    a: 3
-    b:
-      ::get: $arg1
-    """, arg1="foo"))
-# -> prints JSON
-```
 
 ## Examples
 
