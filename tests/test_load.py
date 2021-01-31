@@ -89,6 +89,15 @@ class LoadTest(unittest.TestCase):
                     "some-other-resource (0CD49732-28AD-4437-8968-860DE4D84306)\n"
         }, doc)
 
+    def test_string(self):
+        doc = load1s("""\
+            foo:
+                ::let:
+                    x: 1
+                ::string: hello <<x>>
+        """)
+        self.assertEqual({"foo": "hello 1"}, doc)
+
 
 if __name__ == '__main__':
     unittest.main()

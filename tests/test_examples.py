@@ -378,6 +378,122 @@ class JinsiExamples(unittest.TestCase):
 
         self._check(expected, doc)
 
+    def test_example_4(self):
+        doc = """\
+            ::let:
+              xs:
+                - 1
+                - 2
+                - 7
+                - 3
+                - 2
+                - 9
+                - 4
+                - 2
+                - 5
+            
+            doc:
+              ys:
+                ::get: xs
+              zs:
+                ::let:
+                  x:
+                    ::explode:
+                      - " "
+                      - hello world out there
+                ::get: x
+              qs:
+                ::let:
+                  xs:
+                    ::explode:
+                      - " "
+                      - hello out there
+                ::each xs as x:
+                  ::get: x
+        """
+
+        expected = {
+            'doc': {
+                'ys': [1, 2, 7, 3, 2, 9, 4, 2, 5],
+                'zs': ['hello', 'world', 'out', 'there'],
+                'qs': ['hello', 'out', 'there'],
+            }
+        }
+
+        self._check(expected, doc)
+
+    def test_example_5(self):
+        doc = """\
+            ::let:
+              fib:
+                ::when:
+                  ::get: $n == 0 or $n == 1
+                ::then:
+                  ::get: $n
+                ::else:
+                  ::add:
+                    - ::call fib:
+                        $n:
+                          ::get: $n - 1
+                    - ::call fib:
+                        $n:
+                          ::get: $n - 2
+              fibs:
+                ::range_exclusive:
+                  - 0
+                  - ::get: $max
+                    ::else: 10
+            
+            result:
+              ::each fibs as $n:
+                ::call: fib
+        """
+
+        expected = {
+            'result': [
+                0,
+                1,
+                1,
+                2,
+                3,
+                5,
+                8,
+                13,
+                21,
+                34,
+            ]
+        }
+
+        self._check(expected, doc)
+
+    def test_example_6(self):
+        doc = """\
+            result:
+              ::any:
+                - ::when: false
+                  ::then: 1
+                - ::when: false
+                  ::then: 2
+                - 7
+            
+            result2:
+              ::any:
+                - []
+                - {}
+                - false
+                - null
+                - 1
+                - 2
+                - 3
+        """
+
+        expected = {
+            'result': 7,
+            'result2': 1,
+        }
+
+        self._check(expected, doc)
+
 
 if __name__ == '__main__':
     unittest.main()
