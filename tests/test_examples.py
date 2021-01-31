@@ -1,5 +1,4 @@
 import json
-import textwrap
 import unittest
 
 import dezimal
@@ -169,7 +168,7 @@ class JinsiExamples(unittest.TestCase):
         self._check(expected, doc)
 
     def test_example_1(self):
-        doc = textwrap.dedent("""\
+        doc = """\
             ::let:
               name: XMLRpcParser_Main
             
@@ -205,7 +204,7 @@ class JinsiExamples(unittest.TestCase):
                   - 3.01
                   - null
                   - 17
-        """)
+        """
 
         expected = {
             'docs': [
@@ -227,7 +226,7 @@ class JinsiExamples(unittest.TestCase):
         self._check(expected, doc, dezimal_foo=True)
 
     def test_example_2(self):
-        doc = textwrap.dedent("""\
+        doc = """\
             ::let:
               x: foo
               y: bar
@@ -282,7 +281,7 @@ class JinsiExamples(unittest.TestCase):
             
             applied2:
               ::call: template
-        """)
+        """
 
         expected = {
             'formatted': 'hello foo woohoo bar yeah qux and quuz',
@@ -323,6 +322,61 @@ class JinsiExamples(unittest.TestCase):
         os.environ['JINSI_TEST_SHELL'] = '/bin/hash'
 
         self._check(expected, doc, args={'z': 'zzz'})
+
+    def test_example_3(self):
+        doc = """\
+            ::let:
+              users:
+                ::each $ as $account:
+                  ::object:
+                    - ::get: $account
+                    - Properties:
+                        Some: props
+            
+              robousers:
+                ::each $ as $account:
+                  ::object:
+                    - ::get: $account
+                    - Properties:
+                        Some: props
+            
+            Resources:
+              ::call users:
+                - jane
+                - john
+              ::call robousers:
+                - ava
+                - hal
+              a: b
+              c: d
+        """
+
+        expected = {
+            'Resources': {
+                'jane': {
+                    'Properties': {
+                        'Some': 'props'
+                    }
+                },
+                'john': {
+                    'Properties': {
+                        'Some': 'props'
+                    }
+                }, 'ava': {
+                    'Properties': {
+                        'Some': 'props'
+                    }
+                }, 'hal': {
+                    'Properties': {
+                        'Some': 'props'
+                    }
+                },
+                'a': 'b',
+                'c': 'd',
+            }
+        }
+
+        self._check(expected, doc)
 
 
 if __name__ == '__main__':
