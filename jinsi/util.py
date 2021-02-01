@@ -3,14 +3,12 @@ from __future__ import annotations
 import decimal
 import functools
 import hashlib
-import json
 import re
 import struct
 from decimal import Decimal
 from typing import Callable, List, Optional, Union, Dict
 
 import dezimal
-import yaml
 from dezimal import Dezimal
 
 from jinsi.exceptions import NoMergePossible
@@ -332,4 +330,3 @@ def treat(value, *, numtype):
 
 
 JsonValue = Union[type(None), bool, int, float, str, List['JsonValue'], Dict[str, 'JsonValue']]
-
