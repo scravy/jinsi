@@ -57,23 +57,32 @@ class Functions:
         return str(value).rstrip(chars)
 
     @staticmethod
-    def pad_left(value, char, total_length):
+    def strip(value, chars):
+        result = []
+        for char in value:
+            if char not in chars:
+                result.append(char)
+        return "".join(result)
+
+    @staticmethod
+    def _pad_prep(value, char, total_length):
         if not isinstance(value, str):
             value: str = str(value)
         if not isinstance(char, str):
             char: str = str(char)
         diff: int = int(total_length) - len(value)
+        return char, diff, value
+
+    @staticmethod
+    def pad_left(value, char, total_length):
+        char, diff, value = Functions._pad_prep(value, char, total_length)
         if diff <= 0:
             return value
         return char * diff + value
 
     @staticmethod
     def pad_right(value, char, total_length):
-        if not isinstance(value, str):
-            value: str = str(value)
-        if not isinstance(char, str):
-            char: str = str(char)
-        diff: int = int(total_length) - len(value)
+        char, diff, value = Functions._pad_prep(value, char, total_length)
         if diff <= 0:
             return value
         return value + char * diff
@@ -168,6 +177,14 @@ class Functions:
         return str(value)
 
     @staticmethod
+    def integer(value):
+        return int(value)
+
+    @staticmethod
+    def float(value):
+        return float(value)
+
+    @staticmethod
     def boolean(value):
         return bool(value)
 
@@ -260,7 +277,13 @@ class Functions:
         return len(items)
 
     @staticmethod
-    def select(items, ix):
+    def select(items, ix, range_upper=None):
+        if isinstance(items, (list, tuple, str)):
+            ix = int(ix)
+            if range_upper is not None:
+                range_upper = int(range_upper)
+        if range_upper is not None:
+            return items[ix:range_upper]
         return items[ix]
 
     @staticmethod
@@ -329,6 +352,22 @@ class Functions:
         return items[:-int(n)]
 
     @staticmethod
+    def head(items):
+        return items[0]
+
+    @staticmethod
+    def last(items):
+        return items[-1]
+
+    @staticmethod
+    def tail(items):
+        return items[1:]
+
+    @staticmethod
+    def init(items):
+        return items[:-1]
+
+    @staticmethod
     def concat(*items):
         if all(isinstance(item, list) for item in items):
             result = []
@@ -337,6 +376,29 @@ class Functions:
                     result.append(item)
             return result
         return "".join([str(s) for s in items])
+
+    # lists only
+
+    @staticmethod
+    def flatten(items):
+        result = []
+        for item in items:
+            result.extend(item)
+        return result
+
+    @staticmethod
+    def deepflatten(*items):
+        result = []
+
+        def helper(xss):
+            if not isinstance(xss, (list, tuple)):
+                result.append(xss)
+                return
+            for xs in xss:
+                helper(xs)
+
+        helper(items)
+        return result
 
     # object creation utilities
 
