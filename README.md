@@ -8,6 +8,95 @@
 python3 -m pip install jinsi
 ```
 
+Jinsi is a templating engine that uses YAML/JSON syntax, i.e. it is homoiconic. Never mess with indentation again.
+
+Most template engines are a poor choice for templating YAML/JSON, which is why Jinsi is embedded in the document as
+native YAML/JSON syntax.
+
+Example:
+
+```yaml
+::let:
+  foo: Hello
+  bar: World
+value: <<foo>> <<bar>>
+```
+
+Yields:
+
+```
+value: Hello World
+```
+
+Since Jinsi is basically independent from the syntax it works natively in JSON (or any other dialect which uses the
+same data model) too:
+
+```
+{
+  "::let": {
+    "foo": "Hello",
+    "bar": "World"
+  },
+  "value": "<<foo>> <<bar>>"
+}
+```
+
+Jinsi was inspired by AWS Cloudformation templates, which are also homoiconic and feature builtin functions
+(with more limited scope though). As I am using it to ease my DevOps woes it supports Cloudformation's
+Bang-Syntax (`!Sub`) natively.
+
+I am also using it to template Kubernetes YAML files. Both `kustomize` as well as `helm` (which uses Go
+Templates 😖) do not cut it for me. My life has been happier ever since. Here's an example:
+
+```yaml
+::let:
+  $name: web-application
+  $subdomain: dashboard
+  $domain: example.com
+  $services:
+    - users
+    - messages
+    - backoffice
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: <<$subdomain>>
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/group.name: <<$domain>>
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/listen-ports:
+      ::json_serialize:
+        - HTTPS: 443
+        - HTTP: 80
+    alb.ingress.kubernetes.io/actions.ssl-redirect:
+      ::json_serialize:
+        Type: redirect
+        RedirectConfig:
+          Protocol: HTTPS
+          Port: '443'
+          StatusCode: HTTP_301
+spec:
+  rules:
+    - host: <<$subdomain>>.<<$domain>>
+      http:
+        paths:
+          ::concat:
+            - - path: /*
+                backend:
+                  serviceName: ssl-redirect
+                  servicePort: use-annotation
+            - ::each $services as $service:
+                path: '/<<$service>>/*'
+                backend:
+                  serviceName: <<$service>>-service
+                  servicePort: 80
+            - - path: '/*'
+                backend:
+                  serviceName: <<$name>>
+                  servicePort: 80
+
 ## Usage via CLI
 
 ```shell script
