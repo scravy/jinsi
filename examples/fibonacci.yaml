@@ -1,0 +1,23 @@
+::let:
+  fib:
+    ::when:
+      ::get: $n == 0 or $n == 1
+    ::then:
+      ::get: $n
+    ::else:
+      ::add:
+        - ::call fib:
+            $n:
+              ::get: $n - 1
+        - ::call fib:
+            $n:
+              ::get: $n - 2
+  fibs:
+    ::range_exclusive:
+      - 0
+      - ::get: $max
+        ::else: 10
+
+result:
+  ::each fibs as $n:
+    ::call: fib
