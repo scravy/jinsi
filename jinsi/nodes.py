@@ -105,7 +105,7 @@ class Else(Node):
     def evaluate_body(self, env: Environment):
         try:
             return self.body.evaluate(env)
-        except (NoSuchEnvironmentVariableError, ArithmeticError, ValueError, TypeError):
+        except (NoSuchEnvironmentVariableError, ArithmeticError, ValueError, TypeError, LookupError):
             return None
 
     def evaluate(self, env: Environment) -> Value:
