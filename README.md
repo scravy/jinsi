@@ -45,8 +45,24 @@ Jinsi was inspired by AWS Cloudformation templates, which are also homoiconic an
 (with more limited scope though). As I am using it to ease my DevOps woes it supports Cloudformation's
 Bang-Syntax (`!Sub`) natively.
 
+Jinsi comes as a command line tool, but you can use it as a library for reading/writing YAML/JSON files too.
+
+Usage:
+
+```bash
+jinsi template.yaml foo=bar qux=quuz
+```
+
+The above invocation will set `$foo` to `Jane` and `$qux` to `Jim`:
+
+```
+value: Hello <<$foo>>
+```
+
+...would result in `value: Hello Jane`.
+
 I am also using it to template Kubernetes YAML files. Both `kustomize` as well as `helm` (which uses Go
-Templates 😖) do not cut it for me. My life has been happier ever since. I could imagine using it with salt, too
+Templates 😖) do not cut it for me. My developer life has been happier ever since. I could imagine using it with salt, too
 (Jinja templates + YAML is just a PITA). Here's an example which configures
 an [ingress resource using aws load balancer controller](https://github.com/kubernetes-sigs/aws-load-balancer-controller)
 
