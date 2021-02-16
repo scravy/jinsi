@@ -103,9 +103,13 @@ class Else(Node):
         self.otherwise: Node = Empty()
 
     def evaluate_body(self, env: Environment):
+        # noinspection PyBroadException
         try:
             return self.body.evaluate(env)
         except (NoSuchEnvironmentVariableError, ArithmeticError, ValueError, TypeError, LookupError):
+            return None
+        except Exception as exc:
+            print(f"WARNING: Unexpected exception {exc}")
             return None
 
     def evaluate(self, env: Environment) -> Value:

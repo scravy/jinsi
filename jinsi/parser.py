@@ -45,6 +45,10 @@ class Parser:
                     docs.append(yaml.safe_load(f))
             obj = merge(*docs)
         key_set = set(obj.keys())
+        if '::let' in obj:
+            return self.parse_let(obj, parent)
+        if '::else' in obj:
+            return self.parse_else(obj, parent)
         if key_set == {'::all'}:
             return self.parse_all(obj['::all'], parent)
         if key_set == {'::any'}:
@@ -54,10 +58,6 @@ class Parser:
         for keyword in ['::all', '::any', '::when', '::then']:
             if keyword in key_set:
                 raise NoParseError()
-        if '::else' in obj:
-            return self.parse_else(obj, parent)
-        if '::let' in obj:
-            return self.parse_let(obj, parent)
         nodes = []
         remaining = {}
         # TODO: decide - if ::when or ::then are here then NoParse - maybe?
