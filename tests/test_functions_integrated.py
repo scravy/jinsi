@@ -1,33 +1,9 @@
-import json
 import unittest
 
-import dezimal
-import yaml
-
-from jinsi import *
-from jinsi.yamlutil import Loader
+from .common import JinsiTestCase
 
 
-class JinsiExamples(unittest.TestCase):
-
-    def _check(self, expected, doc: str, dezimal_foo: bool = False, args: dict = None):
-        rendered = render1s(doc, as_json=True, args=args)
-        if dezimal_foo:
-            self.assertEqual(expected, json.loads(rendered, parse_int=dezimal.Dezimal, parse_float=dezimal.Dezimal))
-        else:
-            self.assertEqual(expected, json.loads(rendered))
-
-        rendered = render1s(doc, as_json=False, args=args)
-        if dezimal_foo:
-            self.assertEqual(expected, yaml.load(rendered, Loader=Loader))
-        else:
-            self.assertEqual(expected, yaml.safe_load(rendered))
-
-        if dezimal_foo:
-            loaded = load1s(doc, numtype=dezimal.Dezimal, args=args)
-        else:
-            loaded = load1s(doc, args=args)
-        self.assertEqual(expected, loaded)
+class JinsiExamples(JinsiTestCase):
 
     def test_flatten(self):
         doc = """\
@@ -45,7 +21,7 @@ class JinsiExamples(unittest.TestCase):
             'xs': [1, 2, 3]
         }
 
-        self._check(expected, doc)
+        self.check(expected, doc)
 
     def test_select_from_list(self):
         doc = """\
@@ -64,7 +40,7 @@ class JinsiExamples(unittest.TestCase):
             'xs': [2]
         }
 
-        self._check(expected, doc)
+        self.check(expected, doc)
 
     def test_select_from_object(self):
         doc = """\
@@ -82,7 +58,7 @@ class JinsiExamples(unittest.TestCase):
             'xs': 2
         }
 
-        self._check(expected, doc)
+        self.check(expected, doc)
 
     def test_select_range_from_list(self):
         doc = """\
@@ -102,7 +78,7 @@ class JinsiExamples(unittest.TestCase):
             'xs': [1, 2]
         }
 
-        self._check(expected, doc)
+        self.check(expected, doc)
 
     def test_select_range_from_string(self):
         doc = """\
@@ -119,7 +95,7 @@ class JinsiExamples(unittest.TestCase):
             'xs': "ab"
         }
 
-        self._check(expected, doc)
+        self.check(expected, doc)
 
 
 if __name__ == '__main__':

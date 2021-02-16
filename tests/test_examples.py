@@ -1,36 +1,12 @@
-import json
+import os
 import unittest
 
-import dezimal
-import yaml
 from dezimal import Dezimal
 
-from jinsi import *
-from jinsi.yamlutil import Loader
-
-import os
+from .common import JinsiTestCase
 
 
-class JinsiExamples(unittest.TestCase):
-
-    def _check(self, expected, doc: str, dezimal_foo: bool = False, args: dict = None):
-        rendered = render1s(doc, as_json=True, args=args)
-        if dezimal_foo:
-            self.assertEqual(expected, json.loads(rendered, parse_int=dezimal.Dezimal, parse_float=dezimal.Dezimal))
-        else:
-            self.assertEqual(expected, json.loads(rendered))
-
-        rendered = render1s(doc, as_json=False, args=args)
-        if dezimal_foo:
-            self.assertEqual(expected, yaml.load(rendered, Loader=Loader))
-        else:
-            self.assertEqual(expected, yaml.safe_load(rendered))
-
-        if dezimal_foo:
-            loaded = load1s(doc, numtype=dezimal.Dezimal, args=args)
-        else:
-            loaded = load1s(doc, args=args)
-        self.assertEqual(expected, loaded)
+class JinsiExamples(JinsiTestCase):
 
     def test_simple_template(self):
         doc = """\
@@ -102,7 +78,7 @@ class JinsiExamples(unittest.TestCase):
             }
         }
 
-        self._check(expected, doc)
+        self.check(expected, doc)
 
     def test_example_0(self):
         doc = """\
@@ -165,7 +141,7 @@ class JinsiExamples(unittest.TestCase):
             }
         }
 
-        self._check(expected, doc)
+        self.check(expected, doc)
 
     def test_example_1(self):
         doc = """\
@@ -223,7 +199,7 @@ class JinsiExamples(unittest.TestCase):
             ]
         }
 
-        self._check(expected, doc, dezimal_foo=True)
+        self.check(expected, doc, dezimal_foo=True)
 
     def test_example_2(self):
         doc = """\
@@ -321,7 +297,7 @@ class JinsiExamples(unittest.TestCase):
 
         os.environ['JINSI_TEST_SHELL'] = '/bin/hash'
 
-        self._check(expected, doc, args={'z': 'zzz'})
+        self.check(expected, doc, args={'z': 'zzz'})
 
     def test_example_3(self):
         doc = """\
@@ -376,7 +352,7 @@ class JinsiExamples(unittest.TestCase):
             }
         }
 
-        self._check(expected, doc)
+        self.check(expected, doc)
 
     def test_example_4(self):
         doc = """\
@@ -420,7 +396,7 @@ class JinsiExamples(unittest.TestCase):
             }
         }
 
-        self._check(expected, doc)
+        self.check(expected, doc)
 
     def test_example_5(self):
         doc = """\
@@ -464,7 +440,7 @@ class JinsiExamples(unittest.TestCase):
             ]
         }
 
-        self._check(expected, doc)
+        self.check(expected, doc)
 
     def test_example_6(self):
         doc = """\
@@ -492,7 +468,7 @@ class JinsiExamples(unittest.TestCase):
             'result2': 1,
         }
 
-        self._check(expected, doc)
+        self.check(expected, doc)
 
 
 if __name__ == '__main__':
