@@ -55,12 +55,11 @@ class Parser:
             return self.parse_any(obj['::any'], parent)
         if key_set == {'::when', '::then'} or key_set == {'::when', '::then', '::else'}:
             return self.parse_conditional(obj, parent)
-        for keyword in ['::all', '::any', '::when', '::then']:
+        for keyword in ('::all', '::any', '::when', '::then'):
             if keyword in key_set:
                 raise NoParseError()
         nodes = []
         remaining = {}
-        # TODO: decide - if ::when or ::then are here then NoParse - maybe?
         for key, value in obj.items():
             if key == '::ignore':
                 continue
