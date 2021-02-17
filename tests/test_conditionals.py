@@ -53,6 +53,40 @@ class JinsiExamples(JinsiTestCase):
 
         self.check(expected, doc)
 
+    def test_case_default_ellipsis(self):
+        doc = """\
+            value:
+                ::let:
+                    x: 17
+                ::case:
+                    x == 1: one
+                    x == 2: two
+                    x == 3: three
+                    x == 4: four
+                    ...: more than four
+        """
+
+        expected = {'value': 'more than four'}
+
+        self.check(expected, doc)
+
+    def test_case_default_underscore(self):
+        doc = """\
+            value:
+                ::let:
+                    x: 17
+                ::case:
+                    x == 1: one
+                    x == 2: two
+                    x == 3: three
+                    x == 4: four
+                    _: more than four
+        """
+
+        expected = {'value': 'more than four'}
+
+        self.check(expected, doc)
+
 
 if __name__ == '__main__':
     unittest.main()

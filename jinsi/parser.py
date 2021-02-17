@@ -142,7 +142,10 @@ class Parser:
             raise NoParseError()
         node = Case(parent)
         for k, v in obj.items():
-            condition = parse_expression(k, node)
+            if k == '_' or k == '...':
+                condition = Constant(node, True)
+            else:
+                condition = parse_expression(k, node)
             action = self.parse_node(v, node)
             node.cases.append((condition, action))
         return node
