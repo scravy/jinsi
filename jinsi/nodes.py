@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from typing import Dict, List
-
+from typing import Dict, List, Tuple
 
 from .environment import Environment
-from .exceptions import NoSuchVariableError, NoSuchEnvironmentVariableError
+from .exceptions import NoSuchVariableError, NoSuchEnvironmentVariableError, NoCaseError
 from .util import Singleton, select, substitute, empty, cached_method
 from .value import Value
 
@@ -242,6 +241,18 @@ class Any(Node):
             if not empty(result):
                 return result
         return False
+
+
+class Case(Node):
+    def __init__(self, parent: Node):
+        super().__init__(parent)
+        self.cases: List[Tuple[Node, Node]] = []
+
+    def evaluate(self, env: Environment) -> Value:
+        for condition, action in self.cases:
+            if condition.evaluate(env):
+                return action.evaluate(env)
+        raise NoCaseError()
 
 
 class Format(Node):

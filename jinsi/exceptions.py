@@ -36,3 +36,7 @@ class NoSuchFunctionError(NoParseError):
 
 class NoMergePossible(JinsiException):
     pass
+
+
+class NoCaseError(JinsiException):
+    pass

@@ -55,7 +55,9 @@ class Parser:
             return self.parse_any(obj['::any'], parent)
         if key_set == {'::when', '::then'} or key_set == {'::when', '::then', '::else'}:
             return self.parse_conditional(obj, parent)
-        for keyword in ('::all', '::any', '::when', '::then'):
+        if key_set == {'::case'}:
+            return self.parse_case(obj['::case'], parent)
+        for keyword in ('::all', '::any', '::when', '::then', '::case'):
             if keyword in key_set:
                 raise NoParseError()
         nodes = []
@@ -133,6 +135,16 @@ class Parser:
         node = Any(parent)
         for item in obj:
             node.nodes.append(self.parse_node(item, node))
+        return node
+
+    def parse_case(self, obj, parent: Node) -> Node:
+        if not isinstance(obj, dict):
+            raise NoParseError()
+        node = Case(parent)
+        for k, v in obj.items():
+            condition = parse_expression(k, node)
+            action = self.parse_node(v, node)
+            node.cases.append((condition, action))
         return node
 
     def parse_else(self, obj: Value, parent: Node) -> Node:

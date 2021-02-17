@@ -37,6 +37,22 @@ class JinsiExamples(JinsiTestCase):
 
         self.check(expected, doc)
 
+    def test_case(self):
+        doc = """\
+            value:
+                ::let:
+                    x: 3
+                ::case:
+                    x == 1: one
+                    x == 2: two
+                    x == 3: three
+                    x == 4: four
+        """
+
+        expected = {'value': 'three'}
+
+        self.check(expected, doc)
+
 
 if __name__ == '__main__':
     unittest.main()

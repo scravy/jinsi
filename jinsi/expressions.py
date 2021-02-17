@@ -81,9 +81,9 @@ def is_env_var(name, regex=re.compile(r"^[0-9_]*[A-Z][_A-Z0-9]*$")):
 def parse_expression(
         expr: str,
         parent: Node,
-        regex=re.compile(r"-?[0-9]+|-?[0-9]+\\.[0-9]+|-?\$?[a-zA-Z][a-zA-Z0-9._-]*|[+/*()<>=!-]+"),
+        _regex=re.compile(r"-?[0-9]+|-?[0-9]+\\.[0-9]+|-?\$?[a-zA-Z][a-zA-Z0-9._-]*|[+/*()<>=!-]+"),
 ) -> Node:
-    tokens = regex.findall(expr)
+    tokens = _regex.findall(expr)
     nodes = []
     operators = []
     for token in tokens:
