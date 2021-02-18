@@ -118,6 +118,8 @@ def load_string(s: str, *, args: Dict = None, numtype: type = float) -> Iterator
 
 
 def load_file(path: str, *, args: Dict = None, numtype: type = float, _open=open) -> Iterator[Value]:
+    if not args:
+        args = {}
     with _open(path) as file:
         docs = loadyaml_all(file)
         for doc in docs:
