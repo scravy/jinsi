@@ -94,12 +94,12 @@ class JinsiExamples(JinsiTestCase):
                     x: 1
                 ::when: x == 1
                 ::then:
-                    foo: one
+                    one
                 ::else:
-                    bar: two
+                    two
         """
 
-        expected = {'foo': 'one'}
+        expected = {'value': 'one'}
 
         self.check(expected, doc)
 
