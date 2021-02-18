@@ -115,6 +115,8 @@ class Parser:
 
     def parse_conditional(self, obj, parent: Node) -> Node:
         node = When(parent)
+        if isinstance(obj['::when'], str):
+            obj['::when'] = {'::get': obj['::when']}
         node.when = self.parse_node(obj['::when'], node)
         node.then = self.parse_node(obj['::then'], node)
         if '::else' in obj:
