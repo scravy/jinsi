@@ -87,6 +87,21 @@ class JinsiExamples(JinsiTestCase):
 
         self.check(expected, doc)
 
+    def test_case_when_without_get(self):
+        doc = """\
+            value:
+                ::let:
+                    x: 1
+                ::when: x == 1
+                ::then:
+                    foo: one
+                ::else:
+                    bar: two
+        """
+
+        expected = {'foo': 'one'}
+
+        self.check(expected, doc)
 
 if __name__ == '__main__':
     unittest.main()
