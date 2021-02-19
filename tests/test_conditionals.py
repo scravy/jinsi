@@ -93,15 +93,14 @@ class JinsiExamples(JinsiTestCase):
                 ::let:
                     x: 1
                 ::when: x == 1
-                ::then:
-                    one
-                ::else:
-                    two
+                ::then: one
+                ::else: two
         """
 
         expected = {'value': 'one'}
 
         self.check(expected, doc)
+
 
 if __name__ == '__main__':
     unittest.main()
