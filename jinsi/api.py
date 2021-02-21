@@ -1,6 +1,6 @@
-from typing import Dict, Iterator
-
 import textwrap
+from json.decoder import JSONDecodeError
+from typing import Dict, Iterator
 
 from yaml import YAMLError
 
@@ -10,8 +10,6 @@ from .parser import Parser, Environment
 from .util import treat
 from .value import Value
 from .yamlutil import dumpyaml, loadyaml_all
-
-from json.decoder import JSONDecodeError
 
 
 def _evaluate(node: Node, *, args: Dict) -> Value:
@@ -71,6 +69,7 @@ def _render(node: Node, *, args: Dict, as_json: bool) -> str:
 
 
 def render_string(s: str, *, args: Dict = None, as_json: bool = False) -> Iterator[str]:
+    """Render each document from a string and return each rendered string one by one."""
     if not args:
         args = {}
     for node in _parse_string(s):
@@ -78,6 +77,7 @@ def render_string(s: str, *, args: Dict = None, as_json: bool = False) -> Iterat
 
 
 def render_file(path: str, *, args: Dict = None, as_json: bool = False, _open=open) -> Iterator[str]:
+    """Render each document from a file and return each rendered string one by one."""
     if not args:
         args = {}
     for node in _parse_file(path, _open=_open):
@@ -100,14 +100,17 @@ def _render1(it: Iterator[str], as_json: bool) -> str:
 
 
 def render1s(s: str, *, args: Dict = None, as_json: bool = False) -> str:
+    """Load all documents from a string and render them as string."""
     return _render1(render_string(s, args=args, as_json=as_json), as_json=as_json)
 
 
 def render1f(path: str, *, args: Dict = None, as_json: bool = False) -> str:
+    """Load all documents from a file and render them as string."""
     return _render1(render_file(path, args=args, as_json=as_json), as_json=as_json)
 
 
 def load_string(s: str, *, args: Dict = None, numtype: type = float) -> Iterator[Value]:
+    """Load all documents from a string."""
     if not args:
         args = {}
     docs = loadyaml_all(textwrap.dedent(s))
@@ -118,6 +121,7 @@ def load_string(s: str, *, args: Dict = None, numtype: type = float) -> Iterator
 
 
 def load_file(path: str, *, args: Dict = None, numtype: type = float, _open=open) -> Iterator[Value]:
+    """Load all documents from a path."""
     if not args:
         args = {}
     with _open(path) as file:
@@ -129,10 +133,12 @@ def load_file(path: str, *, args: Dict = None, numtype: type = float, _open=open
 
 
 def load1s(s: str, *, args: Dict = None, numtype: type = float) -> Value:
+    """Load a single document from a string."""
     r, = load_string(s, args=args, numtype=numtype)
     return r
 
 
 def load1f(path: str, *, args: Dict = None, numtype: type = float) -> Value:
+    """Load a single document from a file."""
     r, = load_file(path, args=args, numtype=numtype)
     return r
