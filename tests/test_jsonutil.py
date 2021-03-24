@@ -43,8 +43,15 @@ class JsonDumpTests(unittest.TestCase):
     def test_dataclass(self):
         with self.assertRaises(TypeError):
             dumpjson(Z(1, 'quux'))
-        res = dumpjson(Z(1, 'quux'), encode_dict=True)
+        res = dumpjson(Z(1, 'quux'), encode_dataclasses=True)
         self.assertEqual('{"foo":1,"bar":"quux"}', res)
+
+    def test_fallback(self):
+        data = Z(1, 'quux')
+        with self.assertRaises(TypeError):
+            dumpjson(data)
+        res = dumpjson(data, ultimate_fallback=str)
+        self.assertEqual(dumpjson(str(data)), res)
 
 
 if __name__ == '__main__':

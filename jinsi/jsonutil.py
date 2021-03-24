@@ -1,3 +1,4 @@
+import dataclasses
 import datetime
 import json
 from typing import Iterator, Any, Union
@@ -13,9 +14,10 @@ class Decoder(json.JSONDecoder):
 
 
 class Encoder(json.JSONEncoder):
-    def __init__(self, encode_dict: bool = False, **kwargs):
+    def __init__(self, encode_dataclasses: bool = False, ultimate_fallback=None, **kwargs):
         super().__init__(**kwargs)
-        self._encode_dict = encode_dict
+        self._encode_dataclasses = encode_dataclasses
+        self._ultimate_fallback = ultimate_fallback
 
     # noinspection PyMethodMayBeStatic
     def default_raw(self, o: Any) -> Union[str, type(None)]:
@@ -54,9 +56,10 @@ class Encoder(json.JSONEncoder):
             encode_str=super().encode,
             encode_int=int.__repr__,
             encode_float=floatstr,
-            encode_dict=self._encode_dict,
+            encode_dataclasses=self._encode_dataclasses,
             encode_other_raw=self.default_raw,
             encode_other=self.default,
+            ultimate_fallback=self._ultimate_fallback,
         )(obj)
 
 
@@ -65,9 +68,10 @@ def _make_iterencode(
         encode_str,
         encode_int,
         encode_float,
-        encode_dict,
+        encode_dataclasses,
         encode_other_raw,
         encode_other,
+        ultimate_fallback,
         # HACK: hand-optimized bytecode; turn globals into locals
         iter=iter,
         next=next,
@@ -133,19 +137,20 @@ def _make_iterencode(
             try:
                 yield from _iterencode_dict(o)
             except (TypeError, AttributeError):
-                if encode_dict and hasattr(o, '__dict__'):
-                    if id(o) in r:
-                        yield encode_str("### RECURSE ###")
-                    else:
-                        r.add(id(o))
-                        yield from _iterencode_dict(o.__dict__)
+                if encode_dataclasses and dataclasses.is_dataclass(o):
+                    yield from _iterencode_dict(o.__dict__)
                 else:
-                    raw = encode_other_raw(o)
-                    if raw is not None:
-                        yield raw
-                    else:
-                        yield from _iterencode(encode_other(o))
-
+                    try:
+                        raw = encode_other_raw(o)
+                        if raw is not None:
+                            yield raw
+                        else:
+                            yield from _iterencode(encode_other(o))
+                    except TypeError as exc:
+                        if ultimate_fallback is not None:
+                            yield from _iterencode(ultimate_fallback(o))
+                        else:
+                            raise exc from None
     return _iterencode
 
 
