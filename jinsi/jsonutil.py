@@ -13,8 +13,9 @@ class Decoder(json.JSONDecoder):
 
 
 class Encoder(json.JSONEncoder):
-    def __init__(self, **kwargs):
+    def __init__(self, encode_dict: bool = False, **kwargs):
         super().__init__(**kwargs)
+        self._encode_dict = encode_dict
 
     # noinspection PyMethodMayBeStatic
     def default_raw(self, o: Any) -> Union[str, type(None)]:
@@ -53,6 +54,7 @@ class Encoder(json.JSONEncoder):
             encode_str=super().encode,
             encode_int=int.__repr__,
             encode_float=floatstr,
+            encode_dict=self._encode_dict,
             encode_other_raw=self.default_raw,
             encode_other=self.default,
         )(obj)
@@ -63,6 +65,7 @@ def _make_iterencode(
         encode_str,
         encode_int,
         encode_float,
+        encode_dict,
         encode_other_raw,
         encode_other,
         # HACK: hand-optimized bytecode; turn globals into locals
@@ -128,11 +131,14 @@ def _make_iterencode(
             try:
                 yield from _iterencode_dict(o)
             except (TypeError, AttributeError):
-                raw = encode_other_raw(o)
-                if raw is not None:
-                    yield raw
+                if encode_dict and hasattr(o, '__dict__'):
+                    yield from _iterencode_dict(o.__dict__)
                 else:
-                    yield from _iterencode(encode_other(o))
+                    raw = encode_other_raw(o)
+                    if raw is not None:
+                        yield raw
+                    else:
+                        yield from _iterencode(encode_other(o))
 
     return _iterencode
 

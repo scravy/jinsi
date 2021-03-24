@@ -1,4 +1,5 @@
 import unittest
+from dataclasses import dataclass
 
 from jinsi.jsonutil import dumpjson, loadjson_all
 
@@ -12,6 +13,11 @@ class X:
         for item in self._items:
             yield count, item
             count += 1
+
+@dataclass
+class Z:
+    foo: int
+    bar: str
 
 
 class JsonDumpTests(unittest.TestCase):
@@ -33,6 +39,12 @@ class JsonDumpTests(unittest.TestCase):
         result = tuple(loadjson_all("\n{}\n{}\n[]\n"))
         expected = ({}, {}, [])
         self.assertEqual(expected, result)
+
+    def test_dataclass(self):
+        with self.assertRaises(TypeError):
+            dumpjson(Z(1, 'quux'))
+        res = dumpjson(Z(1, 'quux'), encode_dict=True)
+        self.assertEqual('{"foo":1,"bar":"quux"}', res)
 
 
 if __name__ == '__main__':
