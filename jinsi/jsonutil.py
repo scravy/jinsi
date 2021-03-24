@@ -78,6 +78,8 @@ def _make_iterencode(
         float=float,
         dec=Dezimal,
 ):
+    r = set()
+
     def _iterencode_dict(o):
         it = iter(o.items())
         if not o:
@@ -131,7 +133,8 @@ def _make_iterencode(
             try:
                 yield from _iterencode_dict(o)
             except (TypeError, AttributeError):
-                if encode_dict and hasattr(o, '__dict__'):
+                if encode_dict and hasattr(o, '__dict__') and not id(o) in r:
+                    r.add(id(o))
                     yield from _iterencode_dict(o.__dict__)
                 else:
                     raw = encode_other_raw(o)
