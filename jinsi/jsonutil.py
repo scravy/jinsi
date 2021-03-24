@@ -133,9 +133,12 @@ def _make_iterencode(
             try:
                 yield from _iterencode_dict(o)
             except (TypeError, AttributeError):
-                if encode_dict and hasattr(o, '__dict__') and not id(o) in r:
-                    r.add(id(o))
-                    yield from _iterencode_dict(o.__dict__)
+                if encode_dict and hasattr(o, '__dict__'):
+                    if id(o) in r:
+                        yield encode_str("### RECURSE ###")
+                    else:
+                        r.add(id(o))
+                        yield from _iterencode_dict(o.__dict__)
                 else:
                     raw = encode_other_raw(o)
                     if raw is not None:
