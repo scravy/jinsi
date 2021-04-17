@@ -32,7 +32,7 @@ setuptools.setup(
     ],
     python_requires='>=3.7',
     install_requires=[
-        'awesome-pattern-matching>=0.19.0',
+        'awesome-pattern-matching>=0.20.1',
         'pyyaml>=5.0.0',
     ],
 )
