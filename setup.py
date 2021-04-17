@@ -33,7 +33,6 @@ setuptools.setup(
     python_requires='>=3.7',
     install_requires=[
         'awesome-pattern-matching>=0.19.0',
-        'dezimal>=0.4.0',
         'pyyaml>=5.0.0',
     ],
 )

@@ -14,6 +14,7 @@ class X:
             yield count, item
             count += 1
 
+
 @dataclass
 class Z:
     foo: int
@@ -42,15 +43,15 @@ class JsonDumpTests(unittest.TestCase):
 
     def test_dataclass(self):
         with self.assertRaises(TypeError):
-            dumpjson(Z(1, 'quux'))
-        res = dumpjson(Z(1, 'quux'), encode_dataclasses=True)
+            dumpjson(Z(1, 'quux'), encode_dataclasses=False, ultimate_fallback=None)
+        res = dumpjson(Z(1, 'quux'))
         self.assertEqual('{"foo":1,"bar":"quux"}', res)
 
     def test_fallback(self):
         data = Z(1, 'quux')
         with self.assertRaises(TypeError):
-            dumpjson(data)
-        res = dumpjson(data, ultimate_fallback=str)
+            dumpjson(data, encode_dataclasses=False, ultimate_fallback=None)
+        res = dumpjson(data, encode_dataclasses=False)
         self.assertEqual(dumpjson(str(data)), res)
 
 

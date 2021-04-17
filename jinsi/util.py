@@ -5,11 +5,9 @@ import functools
 import hashlib
 import re
 import struct
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Callable, List, Optional, Union, Dict
-
-import dezimal
-from dezimal import Dezimal
 
 from jinsi.exceptions import NoMergePossible
 
@@ -24,12 +22,13 @@ def hash_complex(
         _int_neg=bytes([13]),
         _int_pos=bytes([17]),
         _double=bytes([19]),
-        _string=bytes([23]),
-        _seq=bytes([29]),
-        _map=bytes([31]),
-        _set=bytes([37]),
-        _arbitrary=bytes([41]),
-        _custom=bytes([43]),
+        _decimal=bytes([23]),
+        _string=bytes([29]),
+        _seq=bytes([31]),
+        _map=bytes([37]),
+        _set=bytes([41]),
+        _arbitrary=bytes([43]),
+        _custom=bytes([47]),
 ) -> bytes:
     if isinstance(value, str):
         md = hashlib.new(algo)
@@ -60,6 +59,12 @@ def hash_complex(
         md = hashlib.new(algo)
         md.update(_double)
         md.update(struct.pack("d", value))
+        return md.digest()
+    if isinstance(value, Decimal):
+        md = hashlib.new(algo)
+        nominator, denominator = value.as_integer_ratio()
+        md.update(hash_complex(nominator, algo=algo))
+        md.update(hash_complex(denominator, algo=algo))
         return md.digest()
     if isinstance(value, (list, tuple)):
         md = hashlib.new(algo)
@@ -275,11 +280,6 @@ def simplify(thing):
         return thing
     if isinstance(thing, (bool, str, int, float, Decimal)):
         return thing
-    if isinstance(thing, Dezimal):
-        if thing.scale == 0:
-            return int(thing)
-        else:
-            return Decimal(str(thing))
     # noinspection PyTypeChecker
     result = simplify_dict(thing)
     if result is not None:
@@ -305,7 +305,7 @@ def convert_num(value, totype):
         return value
     elif issubclass(totype, (int, float, str)):
         return totype(value)
-    elif issubclass(totype, (decimal.Decimal, dezimal.Dezimal)):
+    elif issubclass(totype, decimal.Decimal):
         return decimal.Decimal(str(value))
     raise TypeError(f"{value} of type {type(value)} can not be converted to {totype}")
 
@@ -322,8 +322,10 @@ def treat(value, *, numtype):
             for i in range(0, len(val)):
                 val[i] = rtreat(val[i])
             return val
-        if isinstance(val, (int, float, decimal.Decimal, dezimal.Dezimal)):
+        if isinstance(val, (int, float, decimal.Decimal)):
             return convert_num(val, numtype)
+        if isinstance(val, (date, datetime)):
+            return val
         raise TypeError(f"Do not know how to process {val} of type {type(val)}")
 
     return rtreat(value)

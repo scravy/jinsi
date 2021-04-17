@@ -1,7 +1,6 @@
 import hashlib
+from decimal import Decimal
 from functools import reduce
-
-from dezimal import Dezimal
 
 from .jsonutil import dumpjson, loadjson
 from .util import parse_name, empty
@@ -11,11 +10,11 @@ class Functions:
 
     @staticmethod
     def range_inclusive(from_, to):
-        return [Dezimal(x) for x in range(int(from_), int(to) + 1)]
+        return [Decimal(x) for x in range(int(from_), int(to) + 1)]
 
     @staticmethod
     def range_exclusive(from_, to):
-        return [Dezimal(x) for x in range(int(from_), int(to))]
+        return [Decimal(x) for x in range(int(from_), int(to))]
 
     # text functions
 
@@ -148,7 +147,7 @@ class Functions:
 
     @staticmethod
     def is_number(value):
-        return isinstance(value, (Dezimal, int, float))
+        return isinstance(value, (Decimal, int, float))
 
     @staticmethod
     def is_string(value):
@@ -170,7 +169,7 @@ class Functions:
 
     @staticmethod
     def number(value):
-        return Dezimal(value)
+        return Decimal(value)
 
     @staticmethod
     def string(value):
@@ -206,16 +205,16 @@ class Functions:
 
     @staticmethod
     def sum(*args):
-        result = Dezimal(0)
+        result = Decimal(0)
         for arg in args:
-            result += Dezimal(arg)
+            result += Decimal(arg)
         return result
 
     @staticmethod
     def product(*args):
-        result = Dezimal(1)
+        result = Decimal(1)
         for arg in args:
-            result *= Dezimal(arg)
+            result *= Decimal(arg)
         return result
 
     # comparison
@@ -256,19 +255,19 @@ class Functions:
 
     @staticmethod
     def add(a, b):
-        return Dezimal(a) + Dezimal(b)
+        return Decimal(a) + Decimal(b)
 
     @staticmethod
     def sub(a, b):
-        return Dezimal(a) - Dezimal(b)
+        return Decimal(a) - Decimal(b)
 
     @staticmethod
     def mul(a, b):
-        return Dezimal(a) * Dezimal(b)
+        return Decimal(a) * Decimal(b)
 
     @staticmethod
-    def div(a, b, maxscale=None, minscale=17):
-        return Dezimal.div(Dezimal(a), Dezimal(b), maxscale, minscale)
+    def div(a, b):
+        return Decimal(a) / Decimal(b)
 
     # lists and strings
 

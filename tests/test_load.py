@@ -1,7 +1,7 @@
 import unittest
 
 from apm import *
-from dezimal import *
+from decimal import *
 
 from jinsi import *
 
@@ -21,12 +21,12 @@ class LoadTest(unittest.TestCase):
     def test_load_dezimal(self):
         doc = load1s("""\
             foo: 1.34
-            """, numtype=Dezimal)
+            """, numtype=Decimal)
         self.assertFalse(match(doc, Strict(Object(
             foo=Strict(float("1.34"))
         ))))
         self.assertTrue(match(doc, Strict(Object(
-            foo=Strict(Dezimal("1.34"))
+            foo=Strict(Decimal("1.34"))
         ))))
 
     def test_load_float(self):
@@ -34,7 +34,7 @@ class LoadTest(unittest.TestCase):
             foo: 1.34
             """)
         self.assertFalse(match(doc, Strict(Object(
-            foo=Strict(Dezimal("1.34"))
+            foo=Strict(Decimal("1.34"))
         ))))
         self.assertTrue(match(doc, Strict(Object(
             foo=Strict(float("1.34"))

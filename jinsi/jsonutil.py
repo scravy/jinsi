@@ -1,26 +1,25 @@
 import dataclasses
 import datetime
 import json
+from decimal import Decimal
 from typing import Iterator, Any, Union
-
-from dezimal import Dezimal
 
 INFINITY = float('inf')
 
 
 class Decoder(json.JSONDecoder):
     def __init__(self):
-        super().__init__(parse_int=Dezimal, parse_float=Dezimal)
+        super().__init__(parse_int=Decimal, parse_float=Decimal)
 
 
 class Encoder(json.JSONEncoder):
-    def __init__(self, encode_dataclasses: bool = False, ultimate_fallback=None, **kwargs):
+    def __init__(self, encode_dataclasses: bool = True, ultimate_fallback=str, **kwargs):
         super().__init__(**kwargs)
         self._encode_dataclasses = encode_dataclasses
         self._ultimate_fallback = ultimate_fallback
 
     # noinspection PyMethodMayBeStatic
-    def default_raw(self, o: Any) -> Union[str, type(None)]:
+    def default_raw(self, _o: Any) -> Union[str, type(None)]:
         return None
 
     def encode(self, o: Any) -> str:
@@ -80,10 +79,8 @@ def _make_iterencode(
         list=list,
         int=int,
         float=float,
-        dec=Dezimal,
+        dec=Decimal,
 ):
-    r = set()
-
     def _iterencode_dict(o):
         it = iter(o.items())
         if not o:
@@ -151,6 +148,7 @@ def _make_iterencode(
                             yield from _iterencode(ultimate_fallback(o))
                         else:
                             raise exc from None
+
     return _iterencode
 
 

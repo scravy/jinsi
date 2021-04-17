@@ -1,6 +1,5 @@
 import re
-
-from dezimal import Dezimal
+from decimal import Decimal
 
 from .functions import Functions
 from .nodes import *
@@ -88,7 +87,7 @@ def parse_expression(
     operators = []
     for token in tokens:
         if token[0].isdigit() or (len(token) > 1 and token[0] == '-' and token[1].isdigit()):
-            nodes.append(Constant(parent=Empty(), value=Dezimal(token)))
+            nodes.append(Constant(parent=Empty(), value=Decimal(token)))
         elif token[0].isalpha() and token not in ('and', 'or'):
             if is_env_var(token):
                 nodes.append(GetEnvVar(parent=Empty(), name=token))

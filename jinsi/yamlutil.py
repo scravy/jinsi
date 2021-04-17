@@ -1,4 +1,5 @@
 import re
+from decimal import Decimal
 
 import yaml
 import yaml.composer
@@ -10,7 +11,6 @@ import yaml.representer
 import yaml.resolver
 import yaml.scanner
 import yaml.serializer
-from dezimal import Dezimal
 
 
 class Resolver(yaml.resolver.BaseResolver):
@@ -44,7 +44,7 @@ class Loader(yaml.reader.Reader, yaml.scanner.Scanner, yaml.parser.Parser,
 
 def dec_constructor(loader, node):
     value = loader.construct_scalar(node)
-    return Dezimal(value)
+    return Decimal(value)
 
 
 yaml.add_constructor('!dec', dec_constructor, Loader)
@@ -142,7 +142,7 @@ class Dumper(yaml.Dumper):
         return True
 
 
-yaml.add_representer(Dezimal, Dumper.represent_dec, Dumper=Dumper)
+yaml.add_representer(Decimal, Dumper.represent_dec, Dumper=Dumper)
 yaml.add_representer(str, Dumper.represent_str, Dumper=Dumper)
 
 

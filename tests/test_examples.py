@@ -1,7 +1,6 @@
 import os
 import unittest
-
-from dezimal import Dezimal
+from decimal import Decimal
 
 from .common import JinsiTestCase
 
@@ -166,20 +165,12 @@ class JinsiExamples(JinsiTestCase):
               - ::div:
                   - 1
                   - 7
-                  - null
-                  - 28
               - ::div:
                   - 355
                   - 113
-              - ::div:
-                  - 355
-                  - 113
-                  - 20
               - ::div:
                   - 2.7
                   - 3.01
-                  - null
-                  - 17
         """
 
         expected = {
@@ -191,11 +182,9 @@ class JinsiExamples(JinsiTestCase):
                 'XmlRpcParserMain',
                 'xmlRpcParserMain',
                 'XmlRpcProcessor23',
-                Dezimal('0.1428571428571428571428571428'),
-                Dezimal('3.14159292035398230088495575221238938053097345132743362831858407'
-                        '079646017699115044247787610619469026548672566371681'),
-                Dezimal('3.14159292035398230088'),
-                Dezimal('0.89700996677740863787375415282392026578073')
+                Decimal('0.1428571428571428571428571429'),
+                Decimal('3.141592920353982300884955752'),
+                Decimal('0.8970099667774086378737541528')
             ]
         }
 

@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import re
 from datetime import date, datetime
+from decimal import Decimal
 from inspect import getattr_static
 
 import yaml
-from dezimal import Dezimal
 
 from .exceptions import MalformedEachError, MalformedNameError, NoParseError, NoSuchFunctionError
 from .expressions import parse_expression
@@ -30,7 +30,7 @@ class Parser:
             return self.parse_sequence(obj, parent)
         if isinstance(obj, str):
             return self.parse_format(obj, parent)
-        if isinstance(obj, (type(None), bool, int, float, Dezimal, date, datetime)):
+        if isinstance(obj, (type(None), bool, int, float, Decimal, date, datetime)):
             return self.parse_constant(obj, parent)
         if '::include' in obj:
             includes = obj['::include']
