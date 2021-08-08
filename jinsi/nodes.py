@@ -191,16 +191,19 @@ class Each(Node):
         else:
             value = self.parent.get_let(self.source).evaluate(env)
         results = []
+        i = 0
         if self.target[:1] == "$":
             target = self.target[1:]
             for entry in value:
                 result = self.body.evaluate(env.with_env({target: entry}))
                 results.append(result)
+                i += 1
         else:
             for entry in value:
                 self._value: Node = Constant(self, entry)
-                result = self.body.evaluate(env)
+                result = self.body.evaluate(env.with_env({"": entry}))
                 results.append(result)
+                i += 1
         return results
 
 

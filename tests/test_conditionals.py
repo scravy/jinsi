@@ -3,7 +3,7 @@ import unittest
 from .common import JinsiTestCase
 
 
-class JinsiExamples(JinsiTestCase):
+class JinsiConditionals(JinsiTestCase):
 
     def test_conditional_with_let(self):
         doc = """\
