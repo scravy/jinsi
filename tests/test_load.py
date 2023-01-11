@@ -13,7 +13,7 @@ class LoadTest(unittest.TestCase):
             foo: bar
             qux: quux
             """)
-        self.assertTrue(match(doc, Strict(Object(
+        self.assertTrue(match(doc, Strict(dict(
             foo='bar',
             qux='quux',
         ))))
@@ -22,10 +22,10 @@ class LoadTest(unittest.TestCase):
         doc = load1s("""\
             foo: 1.34
             """, numtype=Decimal)
-        self.assertFalse(match(doc, Strict(Object(
+        self.assertFalse(match(doc, Strict(dict(
             foo=Strict(float("1.34"))
         ))))
-        self.assertTrue(match(doc, Strict(Object(
+        self.assertTrue(match(doc, Strict(dict(
             foo=Strict(Decimal("1.34"))
         ))))
 
@@ -33,10 +33,10 @@ class LoadTest(unittest.TestCase):
         doc = load1s("""\
             foo: 1.34
             """)
-        self.assertFalse(match(doc, Strict(Object(
+        self.assertFalse(match(doc, Strict(dict(
             foo=Strict(Decimal("1.34"))
         ))))
-        self.assertTrue(match(doc, Strict(Object(
+        self.assertTrue(match(doc, Strict(dict(
             foo=Strict(float("1.34"))
         ))))
 
