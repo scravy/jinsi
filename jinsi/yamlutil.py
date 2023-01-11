@@ -67,7 +67,7 @@ def aws_cloudformation_intrinsic_function(loader, node):
     if node.tag in ('!Ref', '!Condition'):
         fn = 'Ref'
     elif node.tag == '!GetAtt' and isinstance(node.value, str):
-        path = node.value.split(".", maxsplit=2)
+        path = node.value.split(".", maxsplit=1)
         node = yaml.SequenceNode(
             tag="tag:yaml.org,2002:seq",
             value=[str_node(p) for p in path]
