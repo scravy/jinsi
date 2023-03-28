@@ -65,7 +65,7 @@ def seq_node(value) -> yaml.SequenceNode:
 def aws_cloudformation_intrinsic_function(loader, node):
     fn = f"Fn::{node.tag[1:]}"
     if node.tag in ('!Ref', '!Condition'):
-        fn = 'Ref'
+        fn = node.tag[1:]
     elif node.tag == '!GetAtt' and isinstance(node.value, str):
         path = node.value.split(".", maxsplit=1)
         node = yaml.SequenceNode(
