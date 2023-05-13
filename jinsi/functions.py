@@ -1,4 +1,5 @@
 import hashlib
+import typing
 from decimal import Decimal
 from functools import reduce
 
@@ -269,7 +270,7 @@ class Functions:
     def div(a, b):
         return Decimal(a) / Decimal(b)
 
-    # lists and strings
+    # collections
 
     @staticmethod
     def length(items):
@@ -284,6 +285,14 @@ class Functions:
         if range_upper is not None:
             return items[ix:range_upper]
         return items[ix]
+
+    @staticmethod
+    def keys(obj) -> typing.List[str]:
+        return [*obj.keys()]
+
+    @staticmethod
+    def values(obj) -> typing.List[str]:
+        return [*obj.values()]
 
     @staticmethod
     def contains(needle, haystack):
