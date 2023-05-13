@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Dict, List, Tuple
 
 from .environment import Environment
-from .exceptions import NoSuchVariableError, NoSuchEnvironmentVariableError, NoCaseError
+from .exceptions import NoSuchVariableError, NoSuchEnvironmentVariableError, NoCaseError, NoMatchError
 from .util import Singleton, select, substitute, empty, cached_method
 from .value import Value
 
@@ -256,6 +256,20 @@ class Case(Node):
             if condition.evaluate(env):
                 return action.evaluate(env)
         raise NoCaseError()
+
+
+class Match(Node):
+    def __init__(self, condition: Node, parent: Node):
+        super().__init__(parent)
+        self.condition: Node = condition
+        self.values: Dict[str, Node] = {}
+
+    def evaluate(self, env: Environment) -> Value:
+        condition_value = self.condition.evaluate(env)
+        for value, action in self.values.items():
+            if value == condition_value:
+                return action.evaluate(env)
+        raise NoMatchError()
 
 
 class Format(Node):

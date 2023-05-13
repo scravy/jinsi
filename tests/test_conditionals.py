@@ -101,6 +101,22 @@ class JinsiConditionals(JinsiTestCase):
 
         self.check(expected, doc)
 
+    def test_match(self):
+        doc = """\
+            value:
+                ::let:
+                    $x:
+                        foo: bar
+                        baz: quux
+                ::match $x.baz:
+                    bar: 7
+                    quux: 19
+        """
+
+        expected = {'value': 19}
+
+        self.check(expected, doc)
+
 
 if __name__ == '__main__':
     unittest.main()
