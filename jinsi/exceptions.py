@@ -40,3 +40,7 @@ class NoMergePossible(JinsiException):
 
 class NoCaseError(JinsiException):
     pass
+
+
+class NoMatchError(JinsiException):
+    pass

@@ -57,6 +57,9 @@ class Parser:
             return self.parse_conditional(obj, parent)
         if key_set == {'::case'}:
             return self.parse_case(obj['::case'], parent)
+        if len(key_set) == 1 and next(iter(key_set)).startswith('::match '):
+            k = next(iter(key_set))
+            return self.parse_match(k, obj[k], parent)
         for keyword in ('::all', '::any', '::when', '::then', '::case'):
             if keyword in key_set:
                 raise NoParseError()
@@ -69,9 +72,9 @@ class Parser:
                 nodes.append(self.parse_constant(value, parent))
             elif '::get' in obj:
                 nodes.append(parse_expression(obj['::get'], parent))
-            elif key[:6] == "::call":
+            elif key.startswith("::call"):
                 nodes.append(self.parse_application(key, value, parent))
-            elif key[:6] == "::each":
+            elif key.startswith("::each"):
                 nodes.append(self.parse_each(key, value, parent))
             elif len(key) > 2 and key[:2] == "::":
                 if key not in {"::get", "::call", "::each", "::format"}:
@@ -150,6 +153,15 @@ class Parser:
                 condition = parse_expression(k, node)
             action = self.parse_node(v, node)
             node.cases.append((condition, action))
+        return node
+
+    def parse_match(self, match_decl: str, obj, parent: Node) -> Node:
+        _, expr = match_decl.split(' ', maxsplit=1)
+        if not isinstance(obj, dict):
+            raise NoParseError()
+        condition = parse_expression(expr, parent)
+        node = Match(condition, parent)
+        node.values = {k: self.parse_node(v, node) for k, v in obj.items()}
         return node
 
     def parse_else(self, obj: Value, parent: Node) -> Node:
