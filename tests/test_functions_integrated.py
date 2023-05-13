@@ -97,6 +97,21 @@ class JinsiExamples(JinsiTestCase):
 
         self.check(expected, doc)
 
+    def test_sha256(self):
+        doc = """\
+            ::let:
+                v: "value"
+            xs:
+                ::sha256:
+                - ::get: v
+        """
+
+        expected = {
+            'xs': 'cd42404d52ad55ccfa9aca4adc828aa5800ad9d385a0671fbcbf724118320619'
+        }
+
+        self.check(expected, doc)
+
 
 if __name__ == '__main__':
     unittest.main()
