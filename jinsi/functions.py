@@ -111,28 +111,28 @@ class Functions:
     # hashes
 
     @staticmethod
-    def md5(value):
-        return hashlib.new("md5", value).hexdigest()
+    def md5(value, charset='utf8'):
+        return hashlib.new("md5", value.encode(charset)).hexdigest()
 
     @staticmethod
-    def sha1(value):
-        return hashlib.new("sha1", value).hexdigest()
+    def sha1(value, charset='utf8'):
+        return hashlib.new("sha1", value.encode(charset)).hexdigest()
 
     @staticmethod
-    def sha256(value):
-        return hashlib.new("sha256", value).hexdigest()
+    def sha256(value, charset='utf8'):
+        return hashlib.new("sha256", value.encode(charset)).hexdigest()
 
     @staticmethod
-    def sha512(value):
-        return hashlib.new("sha512", value).hexdigest()
+    def sha512(value, charset='utf8'):
+        return hashlib.new("sha512", value.encode(charset)).hexdigest()
 
     @staticmethod
-    def sha3_256(value):
-        return hashlib.new("sha3_256", value).hexdigest()
+    def sha3_256(value, charset='utf8'):
+        return hashlib.new("sha3_256", value.encode(charset)).hexdigest()
 
     @staticmethod
-    def sha3_512(value):
-        return hashlib.new("sha3_512", value).hexdigest()
+    def sha3_512(value, charset='utf8'):
+        return hashlib.new("sha3_512", value.encode(charset)).hexdigest()
 
     # value tests
 
